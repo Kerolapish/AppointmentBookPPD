@@ -22,8 +22,8 @@
         
         <div class="header-gradient p-8 text-center text-white">
             <div class="mb-4 flex justify-center">
-                <div class="bg-white text-blue-600 rounded-full w-16 h-16 flex items-center justify-center shadow-md">
-                    <i class="fa-solid fa-calendar-check text-3xl"></i>
+                <div class="bg-white rounded-full w-24 h-24 flex items-center justify-center shadow-md p-4 mb-2">
+                    <img src="{{ asset('images/logoPPD.png') }}" alt="PPD Kluang Logo" class="w-full h-full object-contain">
                 </div>
             </div>
             <h1 class="text-2xl font-bold mb-1">Appointment Booking System</h1>

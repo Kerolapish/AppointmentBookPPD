@@ -21,6 +21,18 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth',])->name('dashboard');
 
+/* routes/web.php */
+
+// The Dashboard
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard');
+
+// The Appointment Booking Page
+Route::get('/appointments', function () {
+    return view('appointments'); // Looks for resources/views/appointments.blade.php
+})->name('appointments');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
