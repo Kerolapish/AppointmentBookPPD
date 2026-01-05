@@ -1,0 +1,17 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Base Font */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Your Custom Blue Gradient */
+.header-gradient {
+    background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+}
+
+/* Custom Background for Buttons */
+.bg-primary {
+    background-color: #2563eb;
+}
