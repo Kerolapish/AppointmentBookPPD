@@ -33,6 +33,11 @@ Route::get('/appointments', function () {
     return view('appointments'); // Looks for resources/views/appointments.blade.php
 })->name('appointments');
 
+// The Appointment Booking Page
+Route::get('/complaint', function () {
+    return view('complaint'); // Looks for resources/views/appointments.blade.php
+})->name('complaint');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
