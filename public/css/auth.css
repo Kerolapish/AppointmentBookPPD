@@ -1,0 +1,42 @@
+/* --- Add this to the bottom of complaint.css --- */
+
+/* Auth Page Specifics (Login/Register) */
+.auth-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 16px; /* Slightly rounder corners */
+    padding: 0; /* CHANGED: Remove padding so the blue header touches edges */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    overflow: hidden; /* Ensures the blue header stays inside the rounded corners */
+}
+
+/* Add this helper for the inner white part */
+.auth-body {
+    padding: 40px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.auth-footer a {
+    color: #2962ff;
+    text-decoration: none;
+    font-weight: 600;
+}

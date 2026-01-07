@@ -1,0 +1,199 @@
+/* =========================================
+   NAVBAR STYLES
+   ========================================= */
+
+/* The main bar */
+.navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Container to center content */
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* --- Left Side: Logo & Links --- */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.logo-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-circle {
+    width: 45px;
+    height: 45px;
+    background-color: white;
+    border-radius: 50%;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.logo-circle img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+.logo-text h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e3a8a; /* Dark Blue */
+    margin: 0;
+    line-height: 1.2;
+}
+
+.logo-text p {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    gap: 12px;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: transparent;
+    color: #64748b; /* Gray Text */
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+/* Hover State */
+.nav-link:hover {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+/* Active State (Use this class when on the specific page) */
+.nav-link.active {
+    background-color: #eff6ff; /* Light Blue BG */
+    color: #2563eb; /* Blue Text */
+}
+
+.nav-link i {
+    font-size: 12px;
+}
+
+/* --- Right Side: Notification & Profile --- */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.btn-bell {
+    background: none;
+    border: none;
+    position: relative;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 18px;
+    transition: color 0.2s;
+}
+
+.btn-bell:hover {
+    color: #2563eb;
+}
+
+.notification-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444; /* Red */
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 20px;
+    border-left: 1px solid #e2e8f0;
+    cursor: pointer;
+}
+
+.user-info {
+    text-align: right;
+}
+
+.user-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.user-role {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    background-color: #22c55e; /* Green */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none; /* Hide links on mobile for now */
+    }
+    .logo-text {
+        display: none; /* Hide logo text on mobile */
+    }
+}
+
+@media (max-width: 640px) {
+    .user-info {
+        display: none; /* Hide user name on very small screens */
+    }
+}
