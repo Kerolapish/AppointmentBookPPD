@@ -20,5 +20,11 @@ class Appointment extends Model
         'date',      // <--- Added
         'time',      // <--- Added
         'status',
+        'reason',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

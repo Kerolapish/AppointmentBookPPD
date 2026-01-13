@@ -7,16 +7,29 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        
-        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                    <i class="fa-regular fa-calendar-check"></i>
+
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div class="flex justify-between items-start">
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
                 </div>
-                <span class="bg-green-50 text-green-600 text-[10px] font-bold px-2 py-1 rounded-full">+12%</span>
+
+                {{-- DYNAMIC PERCENTAGE BADGE START --}}
+                <span
+                    class="text-xs font-bold px-2 py-1 rounded-full 
+            {{ $percentageChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }}">
+
+                    {{-- Add '+' sign if positive --}}
+                    {{ $percentageChange > 0 ? '+' : '' }}{{ $percentageChange }}%
+
+                </span>
+                {{-- DYNAMIC PERCENTAGE BADGE END --}}
             </div>
-            <h3 class="text-3xl font-bold text-gray-900 mb-1">{{ $stats['total'] }}</h3>
-            <p class="text-xs text-gray-500 font-medium">Total Appointments</p>
+
+            <div class="mt-4">
+                <h3 class="text-3xl font-bold text-gray-800">{{ $totalAppointments }}</h3>
+                <p class="text-gray-500 text-sm mt-1">Total Appointments</p>
+            </div>
         </div>
 
         <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
@@ -58,8 +71,7 @@
         <div class="lg:col-span-2 space-y-6">
             <div class="flex justify-between items-center mb-2">
                 <h2 class="font-bold text-gray-800 text-lg">Upcoming Appointments</h2>
-                {{-- Make sure this route exists in web.php or remove the link --}}
-                <a href="#" class="text-sm text-blue-600 font-semibold hover:underline">View All</a>
+                <a href="my-appointments" class="text-sm text-blue-600 font-semibold hover:underline">View All</a>
             </div>
 
             @foreach ($upcomingAppointments as $appointment)
@@ -68,17 +80,19 @@
                     $timeObj = \Carbon\Carbon::parse($appointment->time);
                 @endphp
 
-                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-                    <div class="flex-shrink-0 w-16 h-16 bg-blue-50 text-blue-600 rounded-xl flex flex-col items-center justify-center border border-blue-100">
-                        <span class="text-xl font-bold leading-none">{{ $dateObj->format('d') }}</span> 
+                <div
+                    class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+                    <div
+                        class="flex-shrink-0 w-16 h-16 bg-blue-50 text-blue-600 rounded-xl flex flex-col items-center justify-center border border-blue-100">
+                        <span class="text-xl font-bold leading-none">{{ $dateObj->format('d') }}</span>
                         <span class="text-[10px] font-bold uppercase mt-1">{{ $dateObj->format('M') }}</span>
                     </div>
 
                     <div class="flex-grow">
                         <h4 class="font-bold text-gray-900">{{ $appointment->purpose }}</h4>
-                        
+
                         <p class="text-xs text-blue-500 font-semibold mb-2">{{ $appointment->ips }}</p>
-                        
+
                         <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                             <span><i class="fa-regular fa-clock mr-1"></i>
                                 {{ $timeObj->format('h:i A') }}
@@ -89,11 +103,14 @@
 
                     <div class="flex-shrink-0">
                         @if ($appointment->status == 'confirmed')
-                            <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Confirmed</span>
+                            <span
+                                class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Confirmed</span>
                         @elseif($appointment->status == 'pending')
-                            <span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-lg">Pending</span>
+                            <span
+                                class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-lg">Pending</span>
                         @else
-                            <span class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg">{{ ucfirst($appointment->status) }}</span>
+                            <span
+                                class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg">{{ ucfirst($appointment->status) }}</span>
                         @endif
                     </div>
                 </div>
@@ -106,7 +123,8 @@
                     </div>
                     <p class="text-gray-500 font-medium">No upcoming appointments.</p>
                     {{-- Ensure route name matches your web.php --}}
-                    <a href="{{ route('appointments') }}" class="text-blue-600 text-sm font-bold mt-2 inline-block">Book one now</a>
+                    <a href="{{ route('my.appointments') }}" class="text-blue-600 text-sm font-bold mt-2 inline-block">Book
+                        one now</a>
                 </div>
             @endif
         </div>
@@ -122,13 +140,17 @@
                     <i class="fa-solid fa-arrow-right text-sm"></i>
                 </a>
 
-                <a href="#" class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition flex justify-between items-center border border-gray-100">
-                    <span class="flex items-center gap-3"><i class="fa-solid fa-user-pen text-gray-400"></i> Edit Profile</span>
+                <a href="{{ route('profile.edit') }}"
+                    class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition flex justify-between items-center border border-gray-100">
+                    <span class="flex items-center gap-3"><i class="fa-solid fa-user-pen text-gray-400"></i> Edit
+                        Profile</span>
                     <i class="fa-solid fa-arrow-right text-gray-300 text-xs"></i>
                 </a>
 
-                <a href="#" class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition flex justify-between items-center border border-gray-100">
-                    <span class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> View History</span>
+                <a href="{{ route('appointments.store') }}"
+                    class="block w-full bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg transition flex justify-between items-center border border-gray-100">
+                    <span class="flex items-center gap-3"><i class="fa-solid fa-clock-rotate-left text-gray-400"></i> View
+                        History</span>
                     <i class="fa-solid fa-arrow-right text-gray-300 text-xs"></i>
                 </a>
             </div>
@@ -138,19 +160,22 @@
                     <i class="fa-solid fa-lightbulb text-purple-500 text-xl mt-1"></i>
                     <div>
                         <h4 class="font-bold text-gray-800 text-sm">Pro Tip</h4>
-                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">Book appointments early to secure your preferred time slot! Slots fill up fast.</p>
+                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">Book appointments early to secure your
+                            preferred time slot! Slots fill up fast.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div>
+    {{-- <div>
         <h2 class="font-bold text-gray-800 text-lg mb-4">Available Units for Booking</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
-                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition">
+            <div
+                class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+                <div
+                    class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <h4 class="font-bold text-gray-900 text-sm">Unit Pendidikan Khas</h4>
@@ -158,8 +183,10 @@
                 <div class="text-xs text-gray-400 font-medium"><i class="fa-regular fa-clock"></i> 60 min</div>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
-                <div class="w-10 h-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-600 group-hover:text-white transition">
+            <div
+                class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+                <div
+                    class="w-10 h-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-600 group-hover:text-white transition">
                     <i class="fa-solid fa-file-invoice"></i>
                 </div>
                 <h4 class="font-bold text-gray-900 text-sm">Unit Pentadbiran</h4>
@@ -167,8 +194,10 @@
                 <div class="text-xs text-gray-400 font-medium"><i class="fa-regular fa-clock"></i> 30 min</div>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
-                <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition">
+            <div
+                class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+                <div
+                    class="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition">
                     <i class="fa-solid fa-chalkboard-user"></i>
                 </div>
                 <h4 class="font-bold text-gray-900 text-sm">Unit Latihan</h4>
@@ -176,8 +205,10 @@
                 <div class="text-xs text-gray-400 font-medium"><i class="fa-regular fa-clock"></i> 90 min</div>
             </div>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
-                <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-orange-600 group-hover:text-white transition">
+            <div
+                class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+                <div
+                    class="w-10 h-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-orange-600 group-hover:text-white transition">
                     <i class="fa-solid fa-users-gear"></i>
                 </div>
                 <h4 class="font-bold text-gray-900 text-sm">Unit Kurikulum</h4>
@@ -185,5 +216,5 @@
                 <div class="text-xs text-gray-400 font-medium"><i class="fa-regular fa-clock"></i> 45 min</div>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endsection

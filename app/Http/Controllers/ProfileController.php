@@ -11,12 +11,25 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+
     /**
      * Display the user's profile form.
      */
     public function edit(Request $request): View
     {
+        // This opens the editable form (profile/edit.blade.php)
         return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Display the user's profile (Read-only).
+     */
+    public function show(Request $request): View
+    {
+        // This opens the read-only page (profile/show.blade.php)
+        return view('profile.show', [
             'user' => $request->user(),
         ]);
     }
@@ -24,17 +37,23 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request)
     {
-        $request->user()->fill($request->validated());
+        // 1. Validate inputs
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+            'phone' => 'nullable|string|max:20',
+            'ips_name' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
+        ]);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
+        // 2. Save changes
+        $request->user()->fill($validated);
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        // 3. Redirect to Profile Page (CHANGED THIS LINE)
+        return redirect()->route('profile.show')->with('status', 'profile-updated');
     }
 
     /**

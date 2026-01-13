@@ -1,29 +1,78 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
+@section('content')
+<div class="max-w-4xl mx-auto">
+    
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Edit Profile</h1>
+            <p class="text-gray-500 text-sm mt-1">Update your personal information</p>
         </div>
+        <a href="{{ route('profile.show') }}" class="text-gray-500 hover:text-gray-700 font-semibold text-sm flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm hover:bg-gray-50 transition">
+            <i class="fa-solid fa-arrow-left"></i> Back to Profile
+        </a>
     </div>
-</x-app-layout>
+
+    @if (session('status') === 'profile-updated')
+        <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Saved successfully.</span>
+        </div>
+    @endif
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        
+        <form method="post" action="{{ route('profile.update') }}" class="space-y-6">
+            @csrf
+            @method('patch')
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div>
+                    <label for="name" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Full Name</label>
+                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required autofocus
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="email" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Email Address</label>
+                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('email') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Phone Number</label>
+                    <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" placeholder="e.g. +60123456789"
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('phone') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="ips_name" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">IPS Name</label>
+                    <input type="text" name="ips_name" id="ips_name" value="{{ old('ips_name', $user->ips_name) }}" placeholder="Institution Name"
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('ips_name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="address" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Address</label>
+                    <textarea name="address" id="address" rows="3" placeholder="Enter your full address"
+                              class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none">{{ old('address', $user->address) }}</textarea>
+                    @error('address') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
+                <a href="{{ route('profile.show') }}" class="px-5 py-2.5 rounded-lg text-gray-600 font-medium hover:bg-gray-100 transition">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg shadow-md shadow-blue-200 hover:bg-blue-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
