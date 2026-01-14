@@ -1,355 +1,385 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- Wrap the entire content in an Alpine component to manage modal state --}}
-    <div x-data="{
-        showRejectModal: false,
-        rejectUrl: '',
-        selectedAppointmentId: null,
-        modalName: '',
-        modalIps: '',
-        modalDate: '',
-        modalEmail: ''
-    }" class="space-y-8 relative">
 
-        {{-- ================================================ --}}
-        {{-- SECTION 1: PENDING REQUESTS --}}
-        {{-- ================================================ --}}
+    <div class="mb-8 flex items-center justify-between">
         <div>
-            <div class="flex items-center gap-3 mb-4">
-                <div class="p-2 bg-yellow-100 rounded-lg text-yellow-600">
-                    <i class="fa-regular fa-clock text-xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Pending Requests</h2>
-                    <p class="text-sm text-gray-500">Action required for these appointments.</p>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                @if ($pendingRequests->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr
-                                    class="bg-gray-50 text-gray-600 text-xs uppercase font-bold tracking-wider border-b border-gray-100">
-                                    <th class="px-6 py-4">Name / IPS</th>
-                                    <th class="px-6 py-4">Purpose</th>
-                                    <th class="px-6 py-4">Date & Time</th>
-                                    <th class="px-6 py-4">Contact</th>
-                                    <th class="px-6 py-4 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach ($pendingRequests as $request)
-                                    <tr class="hover:bg-gray-50 transition duration-150">
-                                        {{-- 1. Name & IPS --}}
-                                        <td class="px-6 py-4">
-                                            <div class="font-semibold text-gray-900">{{ $request->user->name ?? 'Unknown' }}
-                                            </div>
-                                            <div class="text-xs text-gray-500 font-mono mt-0.5">IPS: {{ $request->ips }}
-                                            </div>
-                                            <div
-                                                class="mt-2 inline-block px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-medium">
-                                                Waited: {{ $request->created_at->diffForHumans() }}
-                                            </div>
-                                        </td>
-
-                                        {{-- 2. Purpose --}}
-                                        <td class="px-6 py-4">
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                                                {{ $request->purpose }}
-                                            </span>
-                                        </td>
-
-                                        {{-- 3. Date & Time --}}
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-2 text-gray-900 font-medium">
-                                                <i class="fa-regular fa-calendar text-gray-400 text-xs"></i>
-                                                {{ \Carbon\Carbon::parse($request->date)->format('d M Y') }}
-                                            </div>
-                                            <div class="flex items-center gap-2 text-blue-600 text-sm mt-1 font-bold">
-                                                <i class="fa-regular fa-clock text-xs"></i>
-                                                {{ \Carbon\Carbon::parse($request->time)->format('h:i A') }}
-                                            </div>
-                                        </td>
-
-                                        {{-- 4. Contact --}}
-                                        <td class="px-6 py-4 text-sm">
-                                            <div class="text-gray-900">
-                                                {{ $request->phone ?? ($request->user->phone ?? '-') }}
-                                            </div>
-                                            <div class="text-gray-500 text-xs mt-0.5">{{ $request->user->email ?? '-' }}
-                                            </div>
-                                        </td>
-
-                                        {{-- 5. Actions --}}
-                                        <td class="px-6 py-4">
-                                            <div class="flex justify-center items-center gap-2">
-                                                <form action="{{ route('admin.approve', $request->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit"
-                                                        class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm transition transform hover:-translate-y-0.5">
-                                                        APPROVE
-                                                    </button>
-                                                </form>
-
-                                                <button type="button"
-                                                    @click="
-                                                        selectedAppointmentId = {{ $request->id }};
-                                                        rejectUrl = '{{ route('admin.reject', $request->id) }}';
-                                                        modalName = '{{ addslashes($request->user->name ?? 'Unknown') }}';
-                                                        modalIps = '{{ $request->ips }}';
-                                                        modalDate = '{{ \Carbon\Carbon::parse($request->date)->format('d M Y') }}';
-                                                        modalEmail = '{{ addslashes($request->user->email ?? '-') }}';
-                                                        showRejectModal = true;
-                                                    "
-                                                    class="bg-white border border-red-200 text-red-500 hover:bg-red-50 text-xs font-bold py-2 px-4 rounded-lg shadow-sm transition">
-                                                    REJECT
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="p-8 text-center text-gray-500">
-                        <i class="fa-regular fa-folder-open text-4xl text-gray-300 mb-3"></i>
-                        <p>No pending requests at the moment.</p>
-                    </div>
-                @endif
-            </div>
+            <h1 class="text-2xl font-bold text-gray-900">Manage Requests</h1>
+            <p class="text-sm text-gray-500 mt-1">View and manage all appointment applications.</p>
         </div>
 
-
-        {{-- ================================================ --}}
-        {{-- SECTION 2: APPROVED APPOINTMENTS --}}
-        {{-- ================================================ --}}
-        <div class="pt-4">
-            <div class="flex justify-between items-end mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-green-100 rounded-lg text-green-600">
-                        <i class="fa-regular fa-calendar-check text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-gray-800">Approved Appointments</h2>
-                        <p class="text-sm text-gray-500">Scheduled upcoming appointments.</p>
-                    </div>
-                </div>
-                <div class="relative">
-                    <input type="text" placeholder="Search approved..."
-                        class="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64">
-                    <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                @if ($approvedRequests->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr
-                                    class="bg-gray-50 text-gray-600 text-xs uppercase font-bold tracking-wider border-b border-gray-100">
-                                    <th class="px-6 py-4">Date & Time</th>
-                                    <th class="px-6 py-4">Name / IPS</th>
-                                    <th class="px-6 py-4">Purpose</th>
-                                    <th class="px-6 py-4">Contact Info</th>
-                                    <th class="px-6 py-4 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach ($approvedRequests as $request)
-                                    <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-6 py-4">
-                                            <div class="font-bold text-green-700">
-                                                {{ \Carbon\Carbon::parse($request->date)->format('d M Y') }}
-                                            </div>
-                                            <div class="text-xs text-green-600 font-semibold mt-0.5">
-                                                {{ \Carbon\Carbon::parse($request->time)->format('h:i A') }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="font-medium text-gray-900">{{ $request->user->name ?? 'Unknown' }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">IPS: {{ $request->ips }}</div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                                {{ $request->purpose }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm">
-                                            <div class="flex items-center gap-2 text-gray-700">
-                                                <i class="fa-solid fa-phone text-gray-400 text-xs"></i>
-                                                {{ $request->phone ?? ($request->user->phone ?? '-') }}
-                                            </div>
-                                            <div class="flex items-center gap-2 text-gray-500 text-xs mt-1">
-                                                <i class="fa-solid fa-envelope text-gray-400 text-xs"></i>
-                                                {{ $request->user->email ?? '-' }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <button
-                                                class="text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 bg-white px-3 py-1.5 rounded text-xs font-medium transition">
-                                                Reschedule
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="p-8 text-center text-gray-500">
-                        <p>No approved appointments found.</p>
-                    </div>
-                @endif
-            </div>
+        <div class="flex gap-3">
+            <span class="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-semibold shadow-sm text-gray-600">
+                <span class="text-green-500 font-bold mr-1">{{ $approved->count() }}</span> Approved
+            </span>
+            <span class="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-semibold shadow-sm text-gray-600">
+                <span class="text-yellow-500 font-bold mr-1">{{ $pending->count() }}</span> Pending
+            </span>
+            <span class="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-semibold shadow-sm text-gray-600">
+                <span class="text-red-500 font-bold mr-1">{{ $rejected->count() }}</span> Rejected
+            </span>
         </div>
+    </div>
 
+    <div class="space-y-10">
 
-        {{-- ================================================ --}}
-        {{-- SECTION 3: REJECTED HISTORY --}}
-        {{-- ================================================ --}}
-        <div class="pt-4">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="p-2 bg-red-100 rounded-lg text-red-600">
-                    <i class="fa-solid fa-ban text-xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Rejected History</h2>
-                    <p class="text-sm text-gray-500">Previously rejected requests.</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+
+                    <form method="GET" action="{{ route('admin.requests') }}"
+                        class="w-full flex flex-col md:flex-row gap-4">
+
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                Search History
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" name="search" value="{{ request('search') }}"
+                                    placeholder="Search user by name..."
+                                    class="pl-10 w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-sm border shadow-sm transition duration-150 ease-in-out">
+                            </div>
+                        </div>
+
+                        <div class="w-full md:w-48">
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                Date Range
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <select name="filter"
+                                    class="pl-10 w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-sm border shadow-sm cursor-pointer">
+                                    <option value="">All Time</option>
+                                    <option value="today" {{ request('filter') == 'today' ? 'selected' : '' }}>Today
+                                    </option>
+                                    <option value="week" {{ request('filter') == 'week' ? 'selected' : '' }}>This Week
+                                    </option>
+                                    <option value="month" {{ request('filter') == 'month' ? 'selected' : '' }}>This Month
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex items-end gap-2">
+                            <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-md shadow-sm text-sm transition-colors duration-200 flex items-center gap-2">
+                                <span>Filter</span>
+                            </button>
+
+                            @if (request()->has('search') || request()->has('filter'))
+                                <a href="{{ route('admin.requests') }}"
+                                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-4 rounded-md shadow-sm text-sm transition-colors duration-200">
+                                    Clear
+                                </a>
+                            @endif
+                        </div>
+                    </form>
                 </div>
             </div>
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                <h2 class="text-lg font-bold text-gray-900">Incoming Requests</h2>
+            </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            @if ($pending->count() > 0)
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr
-                                class="bg-gray-50 text-gray-600 text-xs uppercase font-bold tracking-wider border-b border-gray-100">
-                                <th class="px-6 py-4">Name / IPS</th>
-                                <th class="px-6 py-4">Date Requested</th>
-                                <th class="px-6 py-4">Purpose</th>
-                                <th class="px-6 py-4">Reason for Rejection</th>
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-100">
+                            <tr>
+                                <th class="px-6 py-4">Applicant Name</th>
+                                <th class="px-6 py-4">IPS / Purpose</th>
+                                <th class="px-6 py-4">Requested Date</th>
+                                <th class="px-6 py-4">Contact Info</th>
+                                <th class="px-6 py-4 text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach ($rejectedRequests as $request)
-                                <tr class="hover:bg-gray-50 transition">
+                        <tbody class="divide-y divide-gray-100 text-sm">
+                            @foreach ($pending as $apt)
+                                <tr class="hover:bg-yellow-50/30 transition">
+                                    <td class="px-6 py-4 font-bold text-gray-900">{{ $apt->user->name ?? 'Unknown' }}</td>
+                                    <td class="px-6 py-4 text-gray-600">{{ $apt->purpose }}</td>
                                     <td class="px-6 py-4">
-                                        <div class="font-medium text-gray-900">{{ $request->user->name ?? 'Unknown' }}
+                                        <div class="font-medium text-gray-900">
+                                            {{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}</div>
+                                        <div class="text-xs text-gray-400">
+                                            {{ \Carbon\Carbon::parse($apt->time)->format('h:i A') }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-gray-900">{{ $apt->user->phone ?? '-' }}</div>
+                                        <div class="text-xs text-gray-400">{{ $apt->user->email }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <form action="{{ route('admin.approve', $apt->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit"
+                                                    class="px-4 py-2 bg-green-50 text-green-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-green-100 transition border border-green-200">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            <button type="button"
+                                                onclick="openRejectModal(
+                                                    '{{ $apt->id }}', 
+                                                    '{{ $apt->user->name ?? 'Unknown' }}', 
+                                                    '{{ $apt->ips }}', 
+                                                    '{{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}', 
+                                                    '{{ $apt->user->email }}'
+                                                )"
+                                                class="px-4 py-2 bg-red-50 text-red-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-100 transition border border-red-200">
+                                                Reject
+                                            </button>
                                         </div>
-                                        <div class="text-xs text-gray-500">{{ $request->ips }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        {{ \Carbon\Carbon::parse($request->date)->format('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        {{ $request->purpose }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded bg-red-50 text-red-700 text-xs font-medium border border-red-100">
-                                            {{ $request->reason ?? 'No reason provided' }}
-                                        </span>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-                @if ($rejectedRequests->count() == 0)
-                    <div class="p-8 text-center text-gray-500">
-                        <p>No rejected history found.</p>
-                    </div>
-                @endif
-            </div>
+            @else
+                <div class="p-10 text-center flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                    <i class="fa-regular fa-folder-open text-4xl mb-3 opacity-20"></i>
+                    <p class="text-sm font-medium">No pending requests available.</p>
+                </div>
+            @endif
         </div>
 
-        {{-- ================================================ --}}
-        {{-- REJECT CONFIRMATION MODAL --}}
-        {{-- ================================================ --}}
-        <div x-show="showRejectModal" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="fixed inset-0 bg-gray-900/50 transition-opacity" @click="showRejectModal = false"></div>
-
-            <div class="flex min-h-full items-center justify-center p-4 text-center">
-                <div x-show="showRejectModal" x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-200"
-                    @click.stop>
-                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                        <h3 class="text-base font-bold leading-6 text-gray-900" id="modal-title">
-                            REJECT CONFIRMATION
-                        </h3>
-                        <button @click="showRejectModal = false" class="text-gray-400 hover:text-gray-500">
-                            <i class="fa-solid fa-xmark text-lg"></i>
-                        </button>
-                    </div>
-                    <div class="bg-white px-6 py-6 space-y-4">
-                        {{-- Read-only fields --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Name</label>
-                            <input type="text" x-model="modalName" disabled
-                                class="block w-full rounded-lg border-gray-300 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 cursor-not-allowed text-gray-600">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">IPS</label>
-                            <input type="text" x-model="modalIps" disabled
-                                class="block w-full rounded-lg border-gray-300 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 cursor-not-allowed text-gray-600">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Date</label>
-                            <input type="text" x-model="modalDate" disabled
-                                class="block w-full rounded-lg border-gray-300 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 cursor-not-allowed text-gray-600">
-                        </div>
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email</label>
-                            <input type="text" x-model="modalEmail" disabled
-                                class="block w-full rounded-lg border-gray-300 bg-gray-100 shadow-sm sm:text-sm px-3 py-2 cursor-not-allowed text-gray-600">
-                        </div>
-
-                        {{-- Form with Dynamic Action --}}
-                        <form x-bind:action="rejectUrl" method="POST" class="mt-6">
-                            @csrf
-                            @method('PATCH')
-
-                            <div>
-                                <label for="reason"
-                                    class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Reason</label>
-                                <select id="reason" name="reason"
-                                    class="mt-1 block w-full rounded-lg border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-red-500 focus:outline-none focus:ring-red-500 bg-white shadow-sm"
-                                    required>
-                                    <option value="Clash date">Clash date</option>
-                                    <option value="Incomplete document">Incomplete document</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-
-                            <div class="mt-8 flex justify-end">
-                                <button type="submit"
-                                    class="inline-flex w-full justify-center rounded-lg bg-red-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-600 transition sm:w-auto uppercase tracking-wider">
-                                    CONFIRM
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <h2 class="text-lg font-bold text-gray-900">Approved Appointments</h2>
                 </div>
             </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-100">
+                        <tr>
+                            <th class="px-6 py-4">Name</th>
+                            <th class="px-6 py-4">IPS</th>
+                            <th class="px-6 py-4">Date</th>
+                            <th class="px-6 py-4">Phone Number</th>
+                            <th class="px-6 py-4">Email</th>
+                            <th class="px-6 py-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm">
+                        @forelse($approved as $apt)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 font-bold text-gray-900">{{ $apt->user->name ?? 'Unknown' }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ $apt->purpose }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ $apt->user->phone ?? '-' }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ $apt->user->email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span
+                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Approved
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-400 italic bg-gray-50">No
+                                    approved appointments found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                    <h2 class="text-lg font-bold text-gray-900">Rejected Appointments</h2>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase font-semibold border-b border-gray-100">
+                        <tr>
+                            <th class="px-6 py-4">Name</th>
+                            <th class="px-6 py-4">IPS</th>
+                            <th class="px-6 py-4">Date</th>
+                            <th class="px-6 py-4">Phone Number</th>
+                            <th class="px-6 py-4">Email</th>
+                            <th class="px-6 py-4 text-right">Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm">
+                        @forelse($rejected as $apt)
+                            <tr class="hover:bg-gray-50 transition opacity-80">
+                                <td class="px-6 py-4 font-bold text-gray-900">{{ $apt->user->name ?? 'Unknown' }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ $apt->purpose }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ $apt->user->phone ?? '-' }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ $apt->user->email }}</td>
+                                <td class="px-6 py-4 text-right font-medium text-red-600 uppercase text-xs tracking-wide">
+                                    {{ $apt->reject_reason ?? 'Slot Unavailable' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-400 italic bg-gray-50">No
+                                    rejected appointments found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
+    <div id="rejectModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+                onclick="closeRejectModal()"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+
+                <div class="bg-gray-100 px-4 py-3 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                        REJECT CONFIRMATION
+                    </h3>
+                </div>
+
+                <form id="rejectForm" method="POST" action="">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 space-y-4">
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Name</label>
+                            <input type="text" id="modal_name"
+                                class="w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3 text-gray-500 sm:text-sm cursor-not-allowed"
+                                readonly>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">IPS</label>
+                            <input type="text" id="modal_ips"
+                                class="w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3 text-gray-500 sm:text-sm cursor-not-allowed"
+                                readonly>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Date</label>
+                                <input type="text" id="modal_date"
+                                    class="w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3 text-gray-500 sm:text-sm cursor-not-allowed"
+                                    readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                                <input type="text" id="modal_email"
+                                    class="w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3 text-gray-500 sm:text-sm cursor-not-allowed"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-200">
+
+                        <div>
+                            <label for="reject_reason" class="block text-sm font-bold text-gray-900 mb-1">Reason for
+                                Rejection</label>
+                            <select id="reject_reason" name="reason" onchange="toggleOtherField()"
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md border">
+                                <option value="" disabled selected>Select a reason...</option>
+                                <option value="Clash date">Clash date</option>
+                                <option value="Incomplete document">Incomplete document</option>
+                                <option value="Slot unavailable">Slot unavailable</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div id="other_reason_container" class="hidden">
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Please specify reason</label>
+                            <textarea name="other_reason" rows="2"
+                                class="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md border p-2"
+                                placeholder="Type the specific reason here..."></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            CONFIRM REJECT
+                        </button>
+                        <button type="button" onclick="closeRejectModal()"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openRejectModal(id, name, ips, date, email) {
+            // 1. Populate the read-only fields
+            document.getElementById('modal_name').value = name;
+            document.getElementById('modal_ips').value = ips;
+            document.getElementById('modal_date').value = date;
+            document.getElementById('modal_email').value = email;
+
+            // 2. Set the form action dynamically
+            // Note: This matches the 'admin.appointment.reject' route logic
+            let form = document.getElementById('rejectForm');
+            // Ensure this URL structure matches your routes
+            form.action = '/admin/appointment/' + id + '/reject';
+
+            // 3. Show the modal
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            // Reset form
+            document.getElementById('rejectForm').reset();
+            document.getElementById('other_reason_container').classList.add('hidden');
+        }
+
+        function toggleOtherField() {
+            const select = document.getElementById('reject_reason');
+            const otherContainer = document.getElementById('other_reason_container');
+
+            if (select.value === 'Other') {
+                otherContainer.classList.remove('hidden');
+                otherContainer.querySelector('textarea').required = true;
+            } else {
+                otherContainer.classList.add('hidden');
+                otherContainer.querySelector('textarea').required = false;
+            }
+        }
+    </script>
+
 @endsection

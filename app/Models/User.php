@@ -16,8 +16,8 @@ class User extends Authenticatable
         'password',
         'phone',      // <--- MUST MATCH YOUR DATABASE COLUMN NAME
         'role',
-        // 'ips_name', 
-        // 'address',
+        'ips_name', 
+        'address',
     ];
 
     protected $hidden = [

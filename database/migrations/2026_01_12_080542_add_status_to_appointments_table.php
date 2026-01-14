@@ -9,15 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::table('appointments', function (Blueprint $table) {
-            // "default('pending')" ensures new requests start in the Pending table
-            $table->string('status')->default('pending')->after('id');
-
-            // Optional: A column to store why a request was rejected
-            $table->string('reason')->nullable()->after('status');
-        });
+        // Only add the column if it does NOT exist
+        if (!Schema::hasColumn('appointments', 'status')) {
+            Schema::table('appointments', function (Blueprint $table) {
+                $table->string('status')->default('pending')->after('id');
+            });
+        }
     }
 
     public function down()

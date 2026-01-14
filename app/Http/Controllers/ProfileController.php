@@ -39,7 +39,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        // 1. Validate inputs
+        // 1. Validate inputs (Change 'ips_name' to 'ips' here if DB column is 'ips')
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
@@ -52,7 +52,7 @@ class ProfileController extends Controller
         $request->user()->fill($validated);
         $request->user()->save();
 
-        // 3. Redirect to Profile Page (CHANGED THIS LINE)
+        // 3. Redirect
         return redirect()->route('profile.show')->with('status', 'profile-updated');
     }
 
