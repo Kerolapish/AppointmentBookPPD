@@ -88,40 +88,68 @@
                         @endphp
 
                         <div
-                            class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-md transition">
-                            <div class="flex items-center gap-4 w-full">
-                                <div
-                                    class="bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-center min-w-[70px] border border-blue-100">
-                                    <span
-                                        class="block text-xs font-bold uppercase tracking-wider">{{ $dateObj->format('M') }}</span>
-                                    <span class="block text-xl font-bold">{{ $dateObj->format('d') }}</span>
-                                </div>
+                            class="mb-4 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition {{ $appointment->status === 'reschedule_requested' ? 'border-yellow-400 ring-1 ring-yellow-400' : '' }}">
 
-                                <div>
-                                    <h3 class="font-bold text-gray-900">{{ $appointment->purpose }}</h3>
-                                    <p class="text-xs text-blue-500 font-semibold mb-1">{{ $appointment->ips }}</p>
-                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                                        <span><i class="fa-regular fa-clock mr-1"></i>
-                                            {{ $timeObj->format('h:i A') }}</span>
-                                        <span class="hidden sm:inline text-gray-300">|</span>
-                                        <span><i class="fa-solid fa-location-dot mr-1"></i>
-                                            {{ $appointment->location }}</span>
+                            <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div class="flex items-center gap-4 w-full">
+                                    <div
+                                        class="bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-center min-w-[70px] border border-blue-100">
+                                        <span
+                                            class="block text-xs font-bold uppercase tracking-wider">{{ $dateObj->format('M') }}</span>
+                                        <span class="block text-xl font-bold">{{ $dateObj->format('d') }}</span>
+                                    </div>
+
+                                    <div>
+                                        <h3 class="font-bold text-gray-900">{{ $appointment->purpose }}</h3>
+                                        <p class="text-xs text-blue-500 font-semibold mb-1">{{ $appointment->ips }}</p>
+                                        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                            <span><i class="fa-regular fa-clock mr-1"></i>
+                                                {{ $timeObj->format('h:i A') }}</span>
+                                            <span class="hidden sm:inline text-gray-300">|</span>
+                                            <span><i class="fa-solid fa-location-dot mr-1"></i>
+                                                {{ $appointment->location }}</span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div class="flex-shrink-0">
+                                    @if ($appointment->status == 'confirmed')
+                                        <span
+                                            class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">Confirmed</span>
+                                    @elseif($appointment->status == 'pending')
+                                        <span
+                                            class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full">Pending</span>
+                                    @elseif($appointment->status == 'reschedule_requested')
+                                        <span
+                                            class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">Action
+                                            Required</span>
+                                    @else
+                                        <span
+                                            class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
+                                    @endif
+                                </div>
                             </div>
 
-                            <div class="flex-shrink-0">
-                                @if ($appointment->status == 'confirmed')
-                                    <span
-                                        class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">Confirmed</span>
-                                @elseif($appointment->status == 'pending')
-                                    <span
-                                        class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full">Pending</span>
-                                @else
-                                    <span
-                                        class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
-                                @endif
-                            </div>
+                            @if ($appointment->status === 'reschedule_requested')
+                                <div
+                                    class="bg-yellow-50 border-t border-yellow-200 p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-yellow-800">
+                                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Admin requested a time
+                                            change
+                                        </h3>
+                                        <p class="mt-1 text-sm text-yellow-700">
+                                            <strong>Reason:</strong>
+                                            {{ $appointment->reschedule_reason ?? 'Please pick a new time slot.' }}
+                                        </p>
+                                    </div>
+                                    <button type="button"
+                                        onclick="openUserRescheduleModal('{{ $appointment->id }}', '{{ $appointment->date }}', '{{ $appointment->time }}')"
+                                        class="shrink-0 bg-yellow-400 px-4 py-2 rounded-md text-sm font-bold text-yellow-900 hover:bg-yellow-500 transition shadow-sm w-full sm:w-auto text-center">
+                                        Pick New Time
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     @endforeach
 
@@ -158,10 +186,10 @@
                             </a>
 
                             <a href="{{ route('profile.edit') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium transition group">
+                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
                                 <div class="flex items-center">
                                     <span
-                                        class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mr-3 group-hover:bg-gray-200 transition">
+                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
                                         <i class="fa-regular fa-user"></i>
                                     </span>
                                     Edit Profile
@@ -169,10 +197,10 @@
                             </a>
 
                             <a href="{{ route('my.appointments') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium transition group">
+                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
                                 <div class="flex items-center">
                                     <span
-                                        class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mr-3 group-hover:bg-gray-200 transition">
+                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
                                         <i class="fa-solid fa-clock-rotate-left"></i>
                                     </span>
                                     View History
@@ -180,10 +208,10 @@
                             </a>
 
                             <a href="{{ route('complaint.create') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm font-medium transition group">
+                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
                                 <div class="flex items-center">
                                     <span
-                                        class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mr-3 group-hover:bg-gray-200 transition">
+                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
                                         <i class="fa-regular fa-circle-question"></i>
                                     </span>
                                     Complaint
@@ -209,4 +237,80 @@
             </div>
         </div>
     </div>
+
+    <div id="userRescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+                onclick="closeUserRescheduleModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div
+                class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-100">
+                <div class="bg-yellow-50 px-4 py-4 border-b border-yellow-200 flex justify-between items-center">
+                    <h3 class="text-lg leading-6 font-bold text-yellow-900" id="modal-title">
+                        <i class="fa-regular fa-calendar-check mr-2"></i> Pick New Appointment Time
+                    </h3>
+                    <button type="button" onclick="closeUserRescheduleModal()"
+                        class="text-yellow-600 hover:text-yellow-800">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <form id="userRescheduleForm" method="POST" action="">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="bg-white px-4 pt-5 pb-6 sm:p-6 space-y-5">
+                        <p class="text-sm text-gray-500 mb-4">Please select a new date and time for your appointment. The
+                            request will be sent back to the admin for approval.</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">New Date</label>
+                                <input type="date" name="date" id="modal_new_date" required
+                                    min="{{ date('Y-m-d') }}"
+                                    class="w-full bg-white border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 sm:text-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">New Time</label>
+                                <input type="time" name="time" id="modal_new_time" required
+                                    class="w-full bg-white border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 sm:text-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 border-t border-gray-100 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit"
+                            class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2.5 bg-yellow-500 text-base font-bold text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm transition">
+                            Submit New Time
+                        </button>
+                        <button type="button" onclick="closeUserRescheduleModal()"
+                            class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2.5 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openUserRescheduleModal(id, oldDate, oldTime) {
+            document.getElementById('modal_new_date').value = oldDate;
+            document.getElementById('modal_new_time').value = oldTime;
+
+            // Set the form action URL
+            let form = document.getElementById('userRescheduleForm');
+
+            // Updated to match your route perfectly!
+            form.action = '/appointment/' + id + '/update-time';
+
+            document.getElementById('userRescheduleModal').classList.remove('hidden');
+        }
+
+        function closeUserRescheduleModal() {
+            document.getElementById('userRescheduleModal').classList.add('hidden');
+        }
+    </script>
 @endsection

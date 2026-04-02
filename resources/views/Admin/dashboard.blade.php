@@ -15,7 +15,7 @@
                         <i class="fa-regular fa-circle-check"></i>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Approved</p>
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Confirmed</p>
                         <p class="text-3xl font-bold text-gray-900">{{ $approvedCount }}</p>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                                 </span>
                             @elseif($appointment->status == 'confirmed')
                                 <span class="bg-green-100 text-green-700 text-xs font-bold px-4 py-2 rounded-full">
-                                    Approved
+                                    Confirmed
                                 </span>
                             @elseif($appointment->status == 'rejected')
                                 <span class="bg-red-100 text-red-700 text-xs font-bold px-4 py-2 rounded-full">

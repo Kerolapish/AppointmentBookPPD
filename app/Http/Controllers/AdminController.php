@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Twilio\Rest\Client;
 
 class AdminController extends Controller
 {
@@ -21,7 +22,7 @@ class AdminController extends Controller
     {
         // Calculate counts for the 3 colored cards
         $pendingCount = Appointment::where('status', 'pending')->count();
-        $approvedCount = Appointment::where('status', 'approved')->count();
+        $approvedCount = Appointment::where('status', 'confirmed')->count();
         $rejectedCount = Appointment::where('status', 'rejected')->count();
 
         // Get recent appointments (paginated for the list at the bottom)
@@ -71,7 +72,7 @@ class AdminController extends Controller
         // 4. Get the results based on the filtered query
         // We use 'clone' so the search/filter applies to ALL statuses
         $pending = (clone $query)->where('status', 'pending')->orderBy('date', 'asc')->get();
-        $approved = (clone $query)->where('status', 'approved')->orderBy('date', 'asc')->get();
+        $approved = (clone $query)->where('status', 'confirmed')->orderBy('date', 'asc')->get();
         $rejected = (clone $query)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
         return view('admin.requests', compact('pending', 'approved', 'rejected'));
@@ -105,7 +106,7 @@ class AdminController extends Controller
         // 3. Get Data for Cards & Charts
         $totalAppointments = (clone $query)->count();
         $pending = (clone $query)->where('status', 'pending')->count();
-        $approved = (clone $query)->where('status', 'approved')->count();
+        $approved = (clone $query)->where('status', 'confirmed')->count();
         $rejected = (clone $query)->where('status', 'rejected')->count();
 
         // Get Table Data
@@ -137,7 +138,7 @@ class AdminController extends Controller
         // 2. Count Stats
         $totalAppointments = $appointments->count();
         $pending = $appointments->where('status', 'pending')->count();
-        $approved = $appointments->where('status', 'approved')->count();
+        $approved = $appointments->where('status', 'confirmed')->count();
         $rejected = $appointments->where('status', 'rejected')->count();
 
         $data = compact(
@@ -180,6 +181,53 @@ class AdminController extends Controller
         return view('admin.users', compact('admins', 'users'));
     }
 
+    public function approve($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->status = 'approved'; 
+        $appointment->save();
+
+        // --- WHATSAPP NOTIFICATION LOGIC ---
+        try {
+            $sid    = env('TWILIO_SID');
+            $token  = env('TWILIO_AUTH_TOKEN');
+            $from   = env('TWILIO_WHATSAPP_FROM');
+            $twilio = new Client($sid, $token);
+
+            // 1. Get the phone number and remove any accidental hidden spaces
+            $userPhone = trim($appointment->user->phone);
+
+            // 2. Force the +60 format for Malaysian numbers if it starts with '0'
+            if (str_starts_with($userPhone, '0')) {
+                $userPhone = '+60' . substr($userPhone, 1);
+            }
+
+            // 3. Add the WhatsApp prefix
+            $to = "whatsapp:" . $userPhone;
+
+            // --- THE DEBUG TEST ---
+            // This will pause the code and print the final number on your screen.
+            // (We will remove this once we know it works!)
+            // dd('STOPPING TO CHECK NUMBER: ', $to);
+            // ----------------------
+
+            $messageBody = "Hello {$appointment->user->name}! Great news, your appointment for {$appointment->purpose} on " . \Carbon\Carbon::parse($appointment->date)->format('d M Y') . " has been APPROVED. See you then!";
+
+            $twilio->messages->create($to, [
+                "from" => $from,
+                "body" => $messageBody
+            ]);
+
+        } catch (\Exception $e) {
+            // If WhatsApp fails, we still want the approval to work, 
+            // but we can log the error so you know what went wrong.
+            \Log::error('WhatsApp Error: ' . $e->getMessage());
+        }
+        // -----------------------------------
+
+        return redirect()->back()->with('success', 'Appointment approved and WhatsApp notification sent!');
+    }
+
     public function reject($id)
     {
         $appointment = Appointment::findOrFail($id);
@@ -213,5 +261,20 @@ class AdminController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Complaint marked as resolved successfully.');
+    }
+
+    public function requestReschedule(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500'
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update([
+            'status' => 'reschedule_requested',
+            'reschedule_reason' => $request->reason
+        ]);
+
+        return redirect()->back()->with('success', 'Reschedule requested successfully.');
     }
 }

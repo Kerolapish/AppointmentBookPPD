@@ -6,6 +6,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\SuperAdminController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -24,12 +25,14 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/appointments/{id}/reschedule', [AppointmentController::class, 'updateReschedule'])->name('appointments.updateReschedule');
     Route::get('/my-appointments', [AppointmentController::class, 'index'])->name('my.appointments');
     Route::patch('/appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+    Route::patch('/appointment/{id}/update-time', [AppointmentController::class, 'updateTime'])->name('user.appointment.updateTime');
 });
 
 // PROFILE ROUTES
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update.profile');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
@@ -46,6 +49,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/requests', [AdminController::class, 'appointments'])->name('admin.requests');
     Route::patch('/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
+    Route::post('/appointment/{id}/request-reschedule', [AdminController::class, 'requestReschedule'])->name('admin.appointment.reschedule');
     Route::patch('/appointment/{id}/reject', [AppointmentController::class, 'reject'])->name('admin.reject');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');

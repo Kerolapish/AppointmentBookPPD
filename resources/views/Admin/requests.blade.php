@@ -10,7 +10,7 @@
 
         <div class="flex gap-3">
             <span class="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-semibold shadow-sm text-gray-600">
-                <span class="text-green-500 font-bold mr-1">{{ $approved->count() }}</span> Approved
+                <span class="text-green-500 font-bold mr-1">{{ $approved->count() }}</span> Confirmed
             </span>
             <span class="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-semibold shadow-sm text-gray-600">
                 <span class="text-yellow-500 font-bold mr-1">{{ $pending->count() }}</span> Pending
@@ -128,9 +128,15 @@
                                                 @method('PATCH')
                                                 <button type="submit"
                                                     class="px-4 py-2 bg-green-50 text-green-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-green-100 transition border border-green-200">
-                                                    Approve
+                                                    Confirm
                                                 </button>
                                             </form>
+
+                                            <button type="button"
+                                                onclick="openRescheduleModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}')"
+                                                class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-yellow-100 transition border border-yellow-200">
+                                                Reschedule
+                                            </button>
 
                                             <button type="button"
                                                 onclick="openRejectModal(
@@ -162,7 +168,7 @@
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                    <h2 class="text-lg font-bold text-gray-900">Approved Appointments</h2>
+                    <h2 class="text-lg font-bold text-gray-900">Confirmed Appointments</h2>
                 </div>
             </div>
 
@@ -191,14 +197,14 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <span
                                         class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Approved
+                                        Confirmed
                                     </span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-8 text-center text-gray-400 italic bg-gray-50">No
-                                    approved appointments found.</td>
+                                    confirmed appointments found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -342,7 +348,54 @@
             </div>
         </div>
     </div>
+    <div id="rescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+                onclick="closeRescheduleModal()"></div>
 
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                <div class="bg-yellow-50 px-4 py-3 border-b border-yellow-200">
+                    <h3 class="text-lg leading-6 font-bold text-yellow-900" id="modal-title">
+                        REQUEST RESCHEDULE
+                    </h3>
+                </div>
+
+                <form id="rescheduleForm" method="POST" action="">
+                    @csrf
+
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 space-y-4">
+                        <p class="text-sm text-gray-600 mb-2">
+                            Ask <strong id="reschedule_modal_name" class="text-gray-900"></strong> to pick a new date and
+                            time for this appointment.
+                        </p>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Reason / Instructions for
+                                User</label>
+                            <textarea name="reason" rows="3" required
+                                class="shadow-sm focus:ring-yellow-500 focus:border-yellow-500 block w-full sm:text-sm border-gray-300 rounded-md border p-2"
+                                placeholder="e.g., I am in a meeting at this time, please pick a slot after 2 PM"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="submit"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-500 text-base font-medium text-white hover:bg-yellow-600 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            SEND REQUEST
+                        </button>
+                        <button type="button" onclick="closeRescheduleModal()"
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script>
         function openRejectModal(id, name, ips, date, email) {
             // 1. Populate the read-only fields
@@ -379,6 +432,24 @@
                 otherContainer.classList.add('hidden');
                 otherContainer.querySelector('textarea').required = false;
             }
+        }
+
+        function openRescheduleModal(id, name) {
+            // 1. Set the user's name in the modal text
+            document.getElementById('reschedule_modal_name').innerText = name;
+
+            // 2. Set the form action dynamically to match your route in web.php
+            let form = document.getElementById('rescheduleForm');
+            form.action = '/admin/appointment/' + id + '/request-reschedule';
+
+            // 3. Show the modal
+            document.getElementById('rescheduleModal').classList.remove('hidden');
+        }
+
+        function closeRescheduleModal() {
+            // Hide the modal and reset the textarea
+            document.getElementById('rescheduleModal').classList.add('hidden');
+            document.getElementById('rescheduleForm').reset();
         }
     </script>
 

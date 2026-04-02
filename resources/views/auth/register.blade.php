@@ -67,9 +67,13 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-                        <input type="password" name="password" required 
-                            class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm @error('password') border-red-500 @enderror"
+                        <input type="password" name="password" id="register_password" required 
+                            class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-10 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm @error('password') border-red-500 @enderror"
                             placeholder="Create a password">
+                        
+                        <button type="button" onclick="togglePassword('register_password', 'toggle-icon-reg-1')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <i class="fa-regular fa-eye-slash" id="toggle-icon-reg-1"></i>
+                        </button>
                     </div>
                     @error('password')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -82,9 +86,13 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                             <i class="fa-solid fa-shield-halved"></i>
                         </span>
-                        <input type="password" name="password_confirmation" required 
-                            class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm"
+                        <input type="password" name="password_confirmation" id="password_confirmation" required 
+                            class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-10 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm"
                             placeholder="Repeat password">
+
+                        <button type="button" onclick="togglePassword('password_confirmation', 'toggle-icon-reg-2')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <i class="fa-regular fa-eye-slash" id="toggle-icon-reg-2"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -104,4 +112,21 @@
         <p class="text-gray-400 text-xs">© {{ date('Y') }} Pejabat Pendidikan Daerah Kluang. All rights reserved.</p>
     </div>
 </div>
+
+<script>
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+</script>
 @endsection

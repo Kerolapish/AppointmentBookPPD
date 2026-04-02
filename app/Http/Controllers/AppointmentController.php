@@ -322,9 +322,61 @@ class AppointmentController extends Controller
         }
 
         // 3. Get the results derived from the Filtered History Query
-        $approved = (clone $historyQuery)->where('status', 'approved')->orderBy('date', 'asc')->get();
+        $approved = (clone $historyQuery)->where('status', 'confirmed')->orderBy('date', 'asc')->get();
         $rejected = (clone $historyQuery)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
-        return view('admin.requests', compact('pending', 'approved', 'rejected'));
+        return view('admin.requests', compact('pending', 'confirmed', 'rejected'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'date' => 'required|date|after_or_equal:today', // Fixed column name
+            'time' => 'required',                           // Fixed column name
+        ]);
+
+        $appointment = Appointment::where('user_id', Auth::id())->findOrFail($id);
+
+        $appointment->update([
+            'date' => $request->date,
+            'time' => $request->time,
+            'status' => 'pending', // Send it back to the admin
+            'reschedule_reason' => null // Clear the reason since it's resolved
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Appointment rescheduled successfully and is pending admin approval.');
+    }
+
+    public function updateTime(Request $request, $id)
+    {
+        // 1. Validate the incoming date and time
+        $request->validate([
+            'date' => 'required|date|after_or_equal:today',
+            'time' => 'required',
+        ]);
+
+        // 2. Find the specific appointment
+        $appointment = Appointment::findOrFail($id);
+
+        // Optional but recommended: Check if the logged-in user actually owns this appointment
+        if ($appointment->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 3. Update the details
+        $appointment->date = $request->date;
+        $appointment->time = $request->time;
+        
+        // 4. Set the status back to 'pending' so the admin can review the new time
+        $appointment->status = 'pending'; 
+        
+        // (Optional) You can also clear out the admin's reschedule reason now that it's fixed
+        $appointment->reschedule_reason = null; 
+        
+        // 5. Save to the database
+        $appointment->save();
+
+        // 6. Redirect back to the dashboard with a success message
+        return redirect()->route('dashboard')->with('success', 'New appointment time submitted! Waiting for admin approval.');
     }
 }

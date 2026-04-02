@@ -42,13 +42,13 @@
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                                 <i class="fa-solid fa-lock"></i>
                             </span>
-                            <input type="password" name="password" required
+                            <input type="password" name="password" id="password" required
                                 class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-10 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm @error('password') border-red-500 @enderror"
                                 placeholder="Enter your password">
 
-                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 cursor-pointer">
-                                <i class="fa-regular fa-eye"></i>
-                            </span>
+                            <button type="button" onclick="togglePassword('password', 'toggle-icon-login')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i class="fa-regular fa-eye-slash" id="toggle-icon-login"></i>
+                            </button>
                         </div>
                         @error('password')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -86,4 +86,21 @@
             </p>
         </div>
     </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+    </script>
 @endsection

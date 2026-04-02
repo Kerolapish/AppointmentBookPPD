@@ -97,7 +97,7 @@
                 <canvas id="doughnutChart"></canvas>
             </div>
             <div class="mt-4 flex justify-center gap-4 text-xs text-gray-600">
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> Approved
+                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> Confirmed
                 </div>
                 <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Pending
                 </div>
@@ -143,9 +143,9 @@
                             <div class="text-xs text-gray-400">{{ $app->phone ?? 'N/A' }}</div>
                         </td>
                         <td class="px-6 py-4 text-right">
-                            @if ($app->status == 'approved')
+                            @if ($app->status == 'confirmed')
                                 <span
-                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Approved</span>
+                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Confirmed</span>
                             @elseif($app->status == 'rejected')
                                 <span
                                     class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Rejected</span>
@@ -229,7 +229,7 @@
         new Chart(ctxDoughnut, {
             type: 'doughnut',
             data: {
-                labels: ['Approved', 'Pending', 'Rejected'],
+                labels: ['Confirmed', 'Pending', 'Rejected'],
                 datasets: [{
                     data: [approvedCount, pendingCount, rejectedCount],
                     backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],

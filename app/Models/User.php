@@ -10,6 +10,10 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    protected $attributes = [
+    'role' => 'user',
+];
+
     protected $fillable = [
         'name',
         'email',

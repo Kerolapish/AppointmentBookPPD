@@ -20,7 +20,7 @@ class Appointment extends Model
         'date',      // <--- Added
         'time',      // <--- Added
         'status',
-        'reason',
+        'reschedule_reason',
     ];
 
     public function user()

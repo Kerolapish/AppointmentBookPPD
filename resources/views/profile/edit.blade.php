@@ -74,5 +74,48 @@
             </div>
         </form>
     </div>
+    <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-gray-900">Update Password</h2>
+            <p class="text-gray-500 text-sm">Ensure your account is using a long, random password to stay secure.</p>
+        </div>
+
+        <form method="post" action="{{ route('password.update.profile') }}" class="space-y-6">
+            @csrf
+            @method('put')
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label for="update_password_current_password" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Current Password</label>
+                    <input type="password" name="current_password" id="update_password_current_password" 
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('current_password', 'updatePassword') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="hidden md:block"></div> <div>
+                    <label for="update_password_password" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">New Password</label>
+                    <input type="password" name="password" id="update_password_password" 
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('password', 'updatePassword') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="update_password_password_confirmation" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Confirm New Password</label>
+                    <input type="password" name="password_confirmation" id="update_password_password_confirmation" 
+                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    @error('password_confirmation', 'updatePassword') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
+                @if (session('status') === 'password-updated')
+                    <p class="text-sm text-green-600 font-medium">Saved.</p>
+                @endif
+                <button type="submit" class="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-lg shadow-md hover:bg-black transition flex items-center gap-2">
+                    <i class="fa-solid fa-lock"></i> Update Password
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

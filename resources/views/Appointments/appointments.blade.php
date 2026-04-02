@@ -115,8 +115,9 @@
 
                     <div class="mb-5">
                         <label class="block text-xs font-bold text-gray-700 mb-2">Phone Number</label>
-                        <input type="text" name="phone" required placeholder="e.g. 012-3456789"
-                            class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 transition">
+                        <input type="text" name="phone" required
+                            class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 transition"
+                            value="{{ Auth::user()->phone }}">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
