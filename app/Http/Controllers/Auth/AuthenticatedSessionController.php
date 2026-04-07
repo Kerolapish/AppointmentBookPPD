@@ -27,7 +27,7 @@ class AuthenticatedSessionController extends Controller
     $request->authenticate();
     $request->session()->regenerate();
 
-    // Undo the 'match' or 'role' checks. Go back to your original logic.
+    // Just redirect everyone to the default dashboard or your old admin check
     if ($request->user()->role === 'admin') {
         return redirect()->intended(route('admin.dashboard'));
     }

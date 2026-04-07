@@ -398,20 +398,38 @@
     </div>
     <script>
         function openRejectModal(id, name, ips, date, email) {
-            // 1. Populate the read-only fields
             document.getElementById('modal_name').value = name;
             document.getElementById('modal_ips').value = ips;
             document.getElementById('modal_date').value = date;
             document.getElementById('modal_email').value = email;
 
-            // 2. Set the form action dynamically
-            // Note: This matches the 'admin.appointment.reject' route logic
             let form = document.getElementById('rejectForm');
-            // Ensure this URL structure matches your routes
-            form.action = '/admin/appointment/' + id + '/reject';
 
-            // 3. Show the modal
+            // FIXED: Use the route name. We replace the placeholder :id with the real ID.
+            let url = "{{ route('admin.appointment.reject', ':id') }}";
+            form.action = url.replace(':id', id);
+
             document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            document.getElementById('rejectForm').reset();
+            document.getElementById('other_reason_container').classList.add('hidden');
+        }
+
+        function toggleOtherField() {
+            const select = document.getElementById('reject_reason');
+            const otherContainer = document.getElementById('other_reason_container');
+            const textarea = otherContainer.querySelector('textarea');
+
+            if (select.value === 'Other') {
+                otherContainer.classList.remove('hidden');
+                textarea.required = true;
+            } else {
+                otherContainer.classList.add('hidden');
+                textarea.required = false;
+            }
         }
 
         function closeRejectModal() {
@@ -435,14 +453,14 @@
         }
 
         function openRescheduleModal(id, name) {
-            // 1. Set the user's name in the modal text
             document.getElementById('reschedule_modal_name').innerText = name;
 
-            // 2. Set the form action dynamically to match your route in web.php
             let form = document.getElementById('rescheduleForm');
-            form.action = '/admin/appointment/' + id + '/request-reschedule';
 
-            // 3. Show the modal
+            // FIXED: Use the route name.
+            let url = "{{ route('admin.appointment.reschedule', ':id') }}";
+            form.action = url.replace(':id', id);
+
             document.getElementById('rescheduleModal').classList.remove('hidden');
         }
 

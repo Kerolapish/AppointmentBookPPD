@@ -206,17 +206,6 @@
                                     View History
                                 </div>
                             </a>
-
-                            <a href="{{ route('complaint.create') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
-                                <div class="flex items-center">
-                                    <span
-                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
-                                        <i class="fa-regular fa-circle-question"></i>
-                                    </span>
-                                    Complaint
-                                </div>
-                            </a>
                         </div>
                     </div>
 

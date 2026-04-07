@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Twilio\Rest\Client;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -22,7 +23,8 @@ class AdminController extends Controller
     {
         // Calculate counts for the 3 colored cards
         $pendingCount = Appointment::where('status', 'pending')->count();
-        $approvedCount = Appointment::where('status', 'confirmed')->count();
+        // FIXED: Changed 'confirmed' to 'approved'
+        $approvedCount = Appointment::where('status', 'approved')->count();
         $rejectedCount = Appointment::where('status', 'rejected')->count();
 
         // Get recent appointments (paginated for the list at the bottom)
@@ -48,7 +50,6 @@ class AdminController extends Controller
         $query = Appointment::query();
 
         // 2. SEARCH LOGIC: Filter by User Name (First 2 chars or more)
-        // We use "like $search%" to find names STARTING with the input
         if ($request->filled('search')) {
             $query->where('name', 'like', $request->search . '%');
         }
@@ -70,9 +71,9 @@ class AdminController extends Controller
         }
 
         // 4. Get the results based on the filtered query
-        // We use 'clone' so the search/filter applies to ALL statuses
         $pending = (clone $query)->where('status', 'pending')->orderBy('date', 'asc')->get();
-        $approved = (clone $query)->where('status', 'confirmed')->orderBy('date', 'asc')->get();
+        // FIXED: Changed 'confirmed' to 'approved'
+        $approved = (clone $query)->where('status', 'approved')->orderBy('date', 'asc')->get();
         $rejected = (clone $query)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
         return view('admin.requests', compact('pending', 'approved', 'rejected'));
@@ -98,7 +99,6 @@ class AdminController extends Controller
             $startDate = Carbon::now()->startOfYear();
             $endDate = Carbon::now()->endOfYear();
         }
-        // If 'month', it uses the default set above
 
         // 2. Apply Date Filter
         $query->whereBetween('date', [$startDate, $endDate]);
@@ -106,7 +106,8 @@ class AdminController extends Controller
         // 3. Get Data for Cards & Charts
         $totalAppointments = (clone $query)->count();
         $pending = (clone $query)->where('status', 'pending')->count();
-        $approved = (clone $query)->where('status', 'confirmed')->count();
+        // FIXED: Changed 'confirmed' to 'approved'
+        $approved = (clone $query)->where('status', 'approved')->count();
         $rejected = (clone $query)->where('status', 'rejected')->count();
 
         // Get Table Data
@@ -138,7 +139,8 @@ class AdminController extends Controller
         // 2. Count Stats
         $totalAppointments = $appointments->count();
         $pending = $appointments->where('status', 'pending')->count();
-        $approved = $appointments->where('status', 'confirmed')->count();
+        // FIXED: Changed 'confirmed' to 'approved'
+        $approved = $appointments->where('status', 'approved')->count();
         $rejected = $appointments->where('status', 'rejected')->count();
 
         $data = compact(
@@ -162,7 +164,7 @@ class AdminController extends Controller
         // 1. Start with a base query
         $query = User::query();
 
-        // 2. Apply Search Filter (if search text exists)
+        // 2. Apply Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -173,94 +175,64 @@ class AdminController extends Controller
         }
 
         // 3. Separate the results into two groups
-        // Assuming you have a 'role' column or check based on middleware logic
-        // We use 'clone' so the search applies to both queries
         $admins = (clone $query)->where('role', 'admin')->orderBy('created_at', 'desc')->get();
         $users  = (clone $query)->where('role', 'user')->orderBy('created_at', 'desc')->get();
 
         return view('admin.users', compact('admins', 'users'));
     }
 
+    // ==========================================
+    // ACTION METHODS (Approve, Reject, Reschedule)
+    // ==========================================
+
     public function approve($id)
     {
         $appointment = Appointment::findOrFail($id);
-        $appointment->status = 'approved'; 
+        $appointment->status = 'approved';
         $appointment->save();
 
-        // --- WHATSAPP NOTIFICATION LOGIC ---
-        try {
-            $sid    = env('TWILIO_SID');
-            $token  = env('TWILIO_AUTH_TOKEN');
-            $from   = env('TWILIO_WHATSAPP_FROM');
-            $twilio = new Client($sid, $token);
+        // Custom message for Approval
+        $dateFormatted = \Carbon\Carbon::parse($appointment->date)->format('d M Y');
+        $message = "Hello {$appointment->user->name}! Great news, your appointment for {$appointment->purpose} on {$dateFormatted} has been APPROVED. See you then!";
 
-            // 1. Get the phone number and remove any accidental hidden spaces
-            $userPhone = trim($appointment->user->phone);
-
-            // 2. Force the +60 format for Malaysian numbers if it starts with '0'
-            if (str_starts_with($userPhone, '0')) {
-                $userPhone = '+60' . substr($userPhone, 1);
-            }
-
-            // 3. Add the WhatsApp prefix
-            $to = "whatsapp:" . $userPhone;
-
-            // --- THE DEBUG TEST ---
-            // This will pause the code and print the final number on your screen.
-            // (We will remove this once we know it works!)
-            // dd('STOPPING TO CHECK NUMBER: ', $to);
-            // ----------------------
-
-            $messageBody = "Hello {$appointment->user->name}! Great news, your appointment for {$appointment->purpose} on " . \Carbon\Carbon::parse($appointment->date)->format('d M Y') . " has been APPROVED. See you then!";
-
-            $twilio->messages->create($to, [
-                "from" => $from,
-                "body" => $messageBody
-            ]);
-
-        } catch (\Exception $e) {
-            // If WhatsApp fails, we still want the approval to work, 
-            // but we can log the error so you know what went wrong.
-            \Log::error('WhatsApp Error: ' . $e->getMessage());
-        }
-        // -----------------------------------
+        $this->sendWhatsAppNotification($appointment->user->phone, $message);
 
         return redirect()->back()->with('success', 'Appointment approved and WhatsApp notification sent!');
     }
 
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
+        // 1. Find the appointment
         $appointment = Appointment::findOrFail($id);
+
+        // 2. Capture the rejection reason from the Modal
+        $reason = $request->input('reason');
+        if ($reason === 'Other') {
+            $reason = $request->input('other_reason');
+        }
+
+        // 3. Update the database
         $appointment->status = 'rejected';
+        $appointment->reject_reason = $reason; // Ensure this column exists in your migration
         $appointment->save();
-        return redirect()->back()->with('success', 'Appointment Rejected');
-    }
 
-    public function complaints()
-    {
-        // Fetch complaints with the associated user, latest first
-        // Ensure you have public function user() { return $this->belongsTo(User::class); } in your Complaint model
-        $complaints = \App\Models\Complaint::with('user')->latest()->paginate(10);
+        // 4. Prepare the WhatsApp Message
+        $dateFormatted = Carbon::parse($appointment->date)->format('d M Y');
+        $name = $appointment->user->name ?? 'Customer';
 
-        return view('admin.admin_complaints', compact('complaints'));
-    }
+        $message = "Hello *{$name}*.\n\n" .
+            "We regret to inform you that your appointment for *{$appointment->purpose}* on *{$dateFormatted}* has been *REJECTED*.\n\n" .
+            "*Reason:* {$reason}\n\n" .
+            "Please contact us if you have any further questions.";
 
-    public function resolveComplaint(Request $request, $id)
-    {
-        $request->validate([
-            'admin_response' => 'required|string|max:1000',
-        ]);
+        // 5. Send Notification with Error Handling
+        try {
+            $this->sendWhatsAppNotification($appointment->user->phone, $message);
+        } catch (\Exception $e) {
+            Log::error('WhatsApp Rejection Error: ' . $e->getMessage());
+        }
 
-        $complaint = \App\Models\Complaint::findOrFail($id);
-
-        $complaint->update([
-            'status' => 'resolved',
-            'admin_response' => $request->admin_response,
-            // Optional: Capture who resolved it if you want
-            // 'resolved_by' => auth()->id(), 
-        ]);
-
-        return redirect()->back()->with('success', 'Complaint marked as resolved successfully.');
+        return redirect()->back()->with('success', 'Appointment rejected and notification sent!');
     }
 
     public function requestReschedule(Request $request, $id)
@@ -275,6 +247,42 @@ class AdminController extends Controller
             'reschedule_reason' => $request->reason
         ]);
 
-        return redirect()->back()->with('success', 'Reschedule requested successfully.');
+        // Custom message for Reschedule Request
+        $message = "Hello {$appointment->user->name}. We need to RESCHEDULE your appointment for {$appointment->purpose}. Reason: {$request->reason}. Please log into the PPD Kluang Appointment System to select a new date.";
+
+        $this->sendWhatsAppNotification($appointment->user->phone, $message);
+
+        return redirect()->back()->with('success', 'Reschedule requested and WhatsApp notification sent!');
+    }
+
+
+    // ==========================================
+    // PRIVATE HELPER METHOD FOR WHATSAPP
+    // ==========================================
+
+    private function sendWhatsAppNotification($phone, $messageBody)
+    {
+        try {
+            $sid    = env('TWILIO_SID');
+            $token  = env('TWILIO_AUTH_TOKEN');
+            $from   = env('TWILIO_WHATSAPP_FROM');
+            $twilio = new Client($sid, $token);
+
+            $userPhone = trim($phone);
+
+            // Force the +60 format for Malaysian numbers
+            if (str_starts_with($userPhone, '0')) {
+                $userPhone = '+60' . substr($userPhone, 1);
+            }
+
+            $to = "whatsapp:" . $userPhone;
+
+            $twilio->messages->create($to, [
+                "from" => $from,
+                "body" => $messageBody
+            ]);
+        } catch (\Exception $e) {
+            Log::error('WhatsApp Error: ' . $e->getMessage());
+        }
     }
 }

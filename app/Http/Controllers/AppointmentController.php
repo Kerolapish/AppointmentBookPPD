@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\OffDay;
 
 class AppointmentController extends Controller
 {
@@ -15,15 +16,15 @@ class AppointmentController extends Controller
         $dailyLimit = 15;
         $weeklyLimit = $dailyLimit * 5;
 
-        // Calculate Today
+        // --- NEW: Fetch blocked dates ---
+        $blockedDates = OffDay::pluck('off_date')->toArray();
+
         $todayCount = Appointment::whereDate('date', Carbon::today())->count();
         $todayLeft = max(0, $dailyLimit - $todayCount);
 
-        // Calculate Tomorrow
         $tomorrowCount = Appointment::whereDate('date', Carbon::tomorrow())->count();
         $tomorrowLeft = max(0, $dailyLimit - $tomorrowCount);
 
-        // Calculate This Week
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek   = Carbon::now()->endOfWeek();
         $weekCount = Appointment::whereBetween('date', [$startOfWeek, $endOfWeek])->count();
@@ -43,7 +44,8 @@ class AppointmentController extends Controller
             'todayLeft',
             'tomorrowLeft',
             'weekStatus',
-            'weekColor'
+            'weekColor',
+            'blockedDates'
         ));
     }
 
@@ -52,84 +54,32 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'purpose'       => 'required|string|max:255',
-            'other_purpose' => 'nullable|string|max:255',
             'ips'           => 'required|string|max:255',
             'location'      => 'required|string',
             'phone'         => 'required|string|max:15',
-            // 1. Basic Date Validation
-            'date'          => [
-                'required',
-                'date',
-                'after_or_equal:today',
-                // 2. Custom Rule: Ensure it's a weekday (Mon-Fri)
-                function ($attribute, $value, $fail) {
-                    if (Carbon::parse($value)->isWeekend()) {
-                        $fail('Appointments can only be booked on weekdays (Monday to Friday).');
-                    }
-                },
-            ],
-            // 3. Time Validation based on the selected date
-            'time'          => [
-                'required',
-                function ($attribute, $value, $fail) use ($request) {
-                    if (!$request->date || Carbon::parse($request->date)->isWeekend()) {
-                        return;
-                    }
-
-                    $date = Carbon::parse($request->date);
-                    $time = Carbon::parse($value);
-                    $dayOfWeek = $date->dayOfWeek; // 1 (Mon) to 5 (Fri)
-
-                    if ($dayOfWeek === Carbon::FRIDAY) {
-                        // Friday Hours: 8:00-12:15 AND 14:45-17:00
-                        $morningStart = Carbon::createFromTime(8, 0);
-                        $morningEnd   = Carbon::createFromTime(12, 15);
-                        $afternoonStart = Carbon::createFromTime(14, 45);
-                        $afternoonEnd   = Carbon::createFromTime(17, 0);
-                    } else {
-                        // Mon-Thu Hours: 8:00-13:00 AND 14:00-17:00
-                        $morningStart = Carbon::createFromTime(8, 0);
-                        $morningEnd   = Carbon::createFromTime(13, 0);
-                        $afternoonStart = Carbon::createFromTime(14, 0);
-                        $afternoonEnd   = Carbon::createFromTime(17, 0);
-                    }
-
-                    $isMorning = $time->betweenIncluded($morningStart, $morningEnd);
-                    $isAfternoon = $time->betweenIncluded($afternoonStart, $afternoonEnd);
-
-                    if (!($isMorning || $isAfternoon)) {
-                        $fail("The selected time is outside of office hours or during the lunch break.");
-                    }
-                },
-            ],
+            'date'          => 'required|date|after_or_equal:today',
+            'time'          => 'required',
         ]);
 
-        // --- LOGIC: Determine final purpose ---
-        $finalPurpose = $request->purpose;
-        if ($request->purpose === 'Other' && $request->filled('other_purpose')) {
-            $finalPurpose = $request->other_purpose;
+        // --- NEW: Security Check for Blocked Dates ---
+        $isBlocked = OffDay::where('off_date', $request->date)->exists();
+        if ($isBlocked) {
+            return back()->withInput()->withErrors(['date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
         }
 
-        // --- Check Redundancy ---
-        $userAlreadyBooked = Appointment::where('user_id', Auth::id())
-            ->where('date', $request->date)
-            ->where('status', '!=', 'cancelled')
-            ->exists();
+        // --- Rest of your existing logic ---
+        $finalPurpose = $request->purpose === 'Other' ? $request->other_purpose : $request->purpose;
 
-        if ($userAlreadyBooked) {
-            return back()->withInput()->withErrors(['date' => 'You already have an appointment scheduled for this date.']);
+        // Check if user already booked this day
+        if (Appointment::where('user_id', Auth::id())->where('date', $request->date)->where('status', '!=', 'cancelled')->exists()) {
+            return back()->withInput()->withErrors(['date' => 'You already have an appointment on this date.']);
         }
 
-        $slotTaken = Appointment::where('date', $request->date)
-            ->where('time', $request->time)
-            ->where('status', '!=', 'cancelled')
-            ->exists();
-
-        if ($slotTaken) {
-            return back()->withInput()->withErrors(['time' => 'Sorry, this time slot is already taken.']);
+        // Check if slot taken
+        if (Appointment::where('date', $request->date)->where('time', $request->time)->where('status', '!=', 'cancelled')->exists()) {
+            return back()->withInput()->withErrors(['time' => 'This time slot is already taken.']);
         }
 
-        // --- Save (Fixed: Removed the Duplicate Create Call) ---
         Appointment::create([
             'user_id'  => Auth::id(),
             'name'     => Auth::user()->name,
@@ -366,13 +316,13 @@ class AppointmentController extends Controller
         // 3. Update the details
         $appointment->date = $request->date;
         $appointment->time = $request->time;
-        
+
         // 4. Set the status back to 'pending' so the admin can review the new time
-        $appointment->status = 'pending'; 
-        
+        $appointment->status = 'pending';
+
         // (Optional) You can also clear out the admin's reschedule reason now that it's fixed
-        $appointment->reschedule_reason = null; 
-        
+        $appointment->reschedule_reason = null;
+
         // 5. Save to the database
         $appointment->save();
 

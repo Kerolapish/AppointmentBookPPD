@@ -61,9 +61,9 @@
                                     <i class="fa-solid fa-user"></i> Users
                                 </a>
 
-                                <a href="{{ route('admin.complaints') }}"
-                                class="flex items-center gap-2 transition {{ request()->routeIs('admin.complaints') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-triangle-exclamation mr-2"></i> Complaints
+                                <a href="{{ route('admin.availability') }}"
+                                    class="nav-link {{ request()->routeIs('admin.availability') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fas fa-calendar-times"></i> Availability
                                 </a>
 
                                 <a href="{{ route('admin.reports') }}"
@@ -140,17 +140,6 @@
                                             <i class="fa-regular fa-user"></i>
                                         </div>
                                         My Profile
-                                    </a>
-                                </div>
-
-                                <div class="px-2 pt-1">
-                                    <a href="{{ route('complaint.index') }}"
-                                        class="group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center mr-3 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                                            <i class="fa-regular fa-user"></i>
-                                        </div>
-                                        My Complaint
                                     </a>
                                 </div>
 
