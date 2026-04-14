@@ -5,12 +5,20 @@
         <div class="auth-card">
 
             <div class="header-gradient text-white text-center py-8 px-6">
-                <div
-                    class="mx-auto w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4">
-                    <img src="{{ asset('images/logoppd.png') }}" alt="PPD Logo" class="w-10 h-10 object-contain">
+
+                <div class="flex items-start justify-center flex-row gap-5 mb-4">
+
+                    <img src="{{ asset('images/logoppd.png') }}" alt="PPD Logo"
+                        class="h-20 w-auto object-contain drop-shadow-md mt-2">
+
+                    <img src="{{ asset('images/logokpm.png') }}" alt="Second Logo"
+                        class="h-24 w-auto object-contain drop-shadow-md">
+
                 </div>
+
                 <h2 class="text-xl font-bold mb-1">Appointment Booking System</h2>
                 <p class="text-blue-100 text-xs uppercase tracking-wider font-semibold">Pejabat Pendidikan Daerah Kluang</p>
+
             </div>
 
             <div class="auth-body">
@@ -46,7 +54,8 @@
                                 class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-10 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm @error('password') border-red-500 @enderror"
                                 placeholder="Enter your password">
 
-                            <button type="button" onclick="togglePassword('password', 'toggle-icon-login')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <button type="button" onclick="togglePassword('password', 'toggle-icon-login')"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
                                 <i class="fa-regular fa-eye-slash" id="toggle-icon-login"></i>
                             </button>
                         </div>

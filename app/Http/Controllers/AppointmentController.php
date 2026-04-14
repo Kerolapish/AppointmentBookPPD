@@ -7,18 +7,39 @@ use App\Models\Appointment;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\OffDay;
+use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
     // 1. Show the Booking Form with Availability Data
     public function create()
     {
-        $dailyLimit = 15;
+        $dailyLimit = 5;
         $weeklyLimit = $dailyLimit * 5;
 
-        // --- NEW: Fetch blocked dates ---
+        // 1. Fetch blocked dates (Admin Off Days)
         $blockedDates = OffDay::pluck('off_date')->toArray();
 
+        // 2. Find dates that are fully booked (5 or more appointments)
+        $fullyBookedDates = Appointment::select(DB::raw('DATE(date) as appointment_date'))
+            ->groupBy('appointment_date')
+            ->havingRaw('COUNT(*) >= 5')
+            ->pluck('appointment_date')
+            ->map(function ($date) {
+                return \Carbon\Carbon::parse($date)->format('Y-m-d');
+            })
+            ->toArray();
+
+        // 3. Find dates the CURRENT USER has already booked
+        $userBookedDates = Appointment::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->select(DB::raw('DATE(date) as appointment_date'))
+            ->pluck('appointment_date')
+            ->map(function ($date) {
+                return \Carbon\Carbon::parse($date)->format('Y-m-d');
+            })
+            ->toArray();
+
+        // --- Weekly/Daily Availability Logic ---
         $todayCount = Appointment::whereDate('date', Carbon::today())->count();
         $todayLeft = max(0, $dailyLimit - $todayCount);
 
@@ -40,12 +61,15 @@ class AppointmentController extends Controller
             $weekColor = 'text-green-600';
         }
 
+        // 4. Return the view with ALL arrays
         return view('Appointments.appointments', compact(
             'todayLeft',
             'tomorrowLeft',
             'weekStatus',
             'weekColor',
-            'blockedDates'
+            'blockedDates',
+            'fullyBookedDates',
+            'userBookedDates'
         ));
     }
 
@@ -61,24 +85,35 @@ class AppointmentController extends Controller
             'time'          => 'required',
         ]);
 
-        // --- NEW: Security Check for Blocked Dates ---
+        // --- Security Check for Blocked Dates ---
         $isBlocked = OffDay::where('off_date', $request->date)->exists();
         if ($isBlocked) {
             return back()->withInput()->withErrors(['date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
         }
 
-        // --- Rest of your existing logic ---
-        $finalPurpose = $request->purpose === 'Other' ? $request->other_purpose : $request->purpose;
+        // --- NEW: Strict 5-Slot Daily Limit ---
+        $dailyCount = Appointment::where('date', $request->date)
+            ->whereNotIn('status', ['cancelled', 'rejected']) // Don't count cancelled/rejected ones
+            ->count();
 
-        // Check if user already booked this day
-        if (Appointment::where('user_id', Auth::id())->where('date', $request->date)->where('status', '!=', 'cancelled')->exists()) {
+        if ($dailyCount >= 5) {
+            return back()->withInput()->withErrors([
+                'date' => 'Sorry, all 5 appointment slots for this date are fully booked. Please select another date.'
+            ]);
+        }
+
+        // --- RESTORED: Check if the user already booked an appointment on this day ---
+        if (Appointment::where('user_id', Auth::id())->where('date', $request->date)->whereNotIn('status', ['cancelled', 'rejected'])->exists()) {
             return back()->withInput()->withErrors(['date' => 'You already have an appointment on this date.']);
         }
 
-        // Check if slot taken
-        if (Appointment::where('date', $request->date)->where('time', $request->time)->where('status', '!=', 'cancelled')->exists()) {
-            return back()->withInput()->withErrors(['time' => 'This time slot is already taken.']);
+        // --- RESTORED: Check if the specific time slot is already taken by someone else ---
+        if (Appointment::where('date', $request->date)->where('time', $request->time)->whereNotIn('status', ['cancelled', 'rejected'])->exists()) {
+            return back()->withInput()->withErrors(['time' => 'This specific time slot is already taken. Please choose a different time.']);
         }
+
+        // --- Rest of your existing logic ---
+        $finalPurpose = $request->purpose === 'Other' ? $request->other_purpose : $request->purpose;
 
         Appointment::create([
             'user_id'  => Auth::id(),
@@ -183,21 +218,38 @@ class AppointmentController extends Controller
             abort(403);
         }
 
-        // Validation: Fields are 'nullable' so user isn't forced to change both
         $request->validate([
             'new_date' => 'nullable|date|after_or_equal:today',
             'new_time' => 'nullable',
         ]);
 
-        // Logic: Use new input if provided; otherwise, keep old value
         $finalDate = $request->filled('new_date') ? $request->new_date : $appointment->date;
         $finalTime = $request->filled('new_time') ? $request->new_time : $appointment->time;
 
-        // Check if the NEW combination is already taken (Optional safety check)
+        // --- 1. Security Check for Blocked Dates ---
+        $isBlocked = OffDay::where('off_date', $finalDate)->exists();
+        if ($isBlocked) {
+            return back()->withInput()->withErrors(['new_date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
+        }
+
+        // --- 2. Check Daily 5-Slot Limit (Only if they are changing the date) ---
+        if ($finalDate != $appointment->date) {
+            $dailyCount = Appointment::where('date', $finalDate)
+                ->whereNotIn('status', ['cancelled', 'rejected'])
+                ->count();
+
+            if ($dailyCount >= 5) {
+                return back()->withInput()->withErrors([
+                    'new_date' => 'Sorry, all 5 appointment slots for your new date are fully booked.'
+                ]);
+            }
+        }
+
+        // --- 3. Check if the specific time slot is already taken ---
         $slotTaken = Appointment::where('date', $finalDate)
             ->where('time', $finalTime)
-            ->where('id', '!=', $id) // Ignore self
-            ->where('status', '!=', 'cancelled')
+            ->where('id', '!=', $id) // Ignore their own current appointment
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->exists();
 
         if ($slotTaken) {
@@ -299,34 +351,54 @@ class AppointmentController extends Controller
 
     public function updateTime(Request $request, $id)
     {
-        // 1. Validate the incoming date and time
         $request->validate([
             'date' => 'required|date|after_or_equal:today',
             'time' => 'required',
         ]);
 
-        // 2. Find the specific appointment
         $appointment = Appointment::findOrFail($id);
 
-        // Optional but recommended: Check if the logged-in user actually owns this appointment
         if ($appointment->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // 3. Update the details
+        // --- 1. Security Check for Blocked Dates ---
+        $isBlocked = OffDay::where('off_date', $request->date)->exists();
+        if ($isBlocked) {
+            return back()->withInput()->withErrors(['date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
+        }
+
+        // --- 2. Check Daily 5-Slot Limit (Only if changing the date) ---
+        if ($request->date != $appointment->date) {
+            $dailyCount = Appointment::where('date', $request->date)
+                ->whereNotIn('status', ['cancelled', 'rejected'])
+                ->count();
+
+            if ($dailyCount >= 5) {
+                return back()->withInput()->withErrors([
+                    'date' => 'Sorry, all 5 appointment slots for this new date are fully booked.'
+                ]);
+            }
+        }
+
+        // --- 3. Check if specific time slot is taken ---
+        $slotTaken = Appointment::where('date', $request->date)
+            ->where('time', $request->time)
+            ->where('id', '!=', $id) // Ignore self
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->exists();
+
+        if ($slotTaken) {
+            return back()->withInput()->withErrors(['time' => 'This specific time slot is already taken.']);
+        }
+
+        // Update the details
         $appointment->date = $request->date;
         $appointment->time = $request->time;
-
-        // 4. Set the status back to 'pending' so the admin can review the new time
         $appointment->status = 'pending';
-
-        // (Optional) You can also clear out the admin's reschedule reason now that it's fixed
         $appointment->reschedule_reason = null;
-
-        // 5. Save to the database
         $appointment->save();
 
-        // 6. Redirect back to the dashboard with a success message
         return redirect()->route('dashboard')->with('success', 'New appointment time submitted! Waiting for admin approval.');
     }
 }

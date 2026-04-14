@@ -4,6 +4,38 @@
 
 @section('content')
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <style>
+        /* Admin Blocked Dates AND Fully Booked Dates */
+        .flatpickr-day.is-blocked,
+        .flatpickr-day.is-blocked.flatpickr-disabled,
+        .flatpickr-day.is-blocked.flatpickr-disabled:hover,
+        .flatpickr-day.is-booked,
+        .flatpickr-day.is-booked.flatpickr-disabled,
+        .flatpickr-day.is-booked.flatpickr-disabled:hover {
+            background-color: #fee2e2 !important;
+            /* Light red */
+            color: #dc2626 !important;
+            /* Bold red text */
+            border-color: #fca5a5 !important;
+            /* Red border */
+        }
+
+        /* Dates the CURRENT USER has already booked */
+        .flatpickr-day.is-user-booked,
+        .flatpickr-day.is-user-booked.flatpickr-disabled,
+        .flatpickr-day.is-user-booked.flatpickr-disabled:hover {
+            background-color: #dbeafe !important;
+            /* Light blue */
+            color: #1e3a8a !important;
+            /* Dark blue text */
+            border-color: #bfdbfe !important;
+            /* Blue border */
+        }
+    </style>
+
     <div class="mb-6">
         <h2 class="text-2xl font-bold text-gray-900">Book an Appointment</h2>
         <p class="text-sm text-gray-500 mt-1">Schedule your appointment with the Private Unit office</p>
@@ -18,9 +50,10 @@
             </svg>
         </div>
         <div>
-            <h4 class="text-sm font-bold text-gray-800">Office Hours</h4>
-            <p class="text-xs text-gray-700">Monday - Thursday: 8:00 AM - 1:00 PM | 2:00 PM - 5:00 PM</p>
-            <p class="text-xs text-gray-700">Friday: 8:00 AM - 12:15 PM | 2:45 PM - 5:00 PM</p>
+            <h4 class="text-sm font-bold text-gray-800">Office Hours & Rules</h4>
+            <p class="text-xs text-gray-700">Monday - Friday: 8:00 AM - 4:00 PM</p>
+            <p class="text-xs font-semibold text-blue-700 mt-0.5">Strictly 1 hour per session. Maximum 5 slots available per
+                day.</p>
         </div>
     </div>
 
@@ -90,12 +123,10 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">Select Date (Mon-Fri)</label>
-                            <input type="date" name="date" id="dateInput" required min="{{ date('Y-m-d') }}"
-                                onchange="updateTimeSlots()"
-                                class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                            <p id="dateError" class="text-red-500 text-xs mt-1 hidden">Please select a weekday (Mon-Fri).
-                            </p>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Select Date</label>
+                            <input type="text" name="date" id="dateInput" required placeholder="Select a date below"
+                                class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 transition hidden">
+                            <p id="dateError" class="text-red-500 text-xs mt-1 hidden">Please select a valid weekday.</p>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2">Select Time</label>
@@ -189,19 +220,67 @@
     </script>
 
     <script>
-        // Define time slots based on the image (using 30-minute intervals)
-        const monThuSlots = [
-            // Morning: 8am - 1pm
-            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30",
-            // Afternoon: 2pm - 5pm (Last slot starts at 4:30pm assuming 30m duration)
-            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
-        ];
+        // Get all arrays from your controller
+        const blockedDates = @json($blockedDates ?? []);
+        const fullyBookedDates = @json($fullyBookedDates ?? []);
+        const userBookedDates = @json($userBookedDates ?? []); // <-- New!
 
-        const fridaySlots = [
-            // Morning: 8am - 12:15pm
-            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-            // Afternoon: 2:45pm - 5pm
-            "14:45", "15:15", "15:45", "16:15", "16:45"
+        // Combine ALL of them so Flatpickr disables them
+        const allUnavailableDates = [...blockedDates, ...fullyBookedDates, ...userBookedDates];
+
+        // Initialize the calendar
+        flatpickr("#dateInput", {
+            inline: true,
+            minDate: "today",
+            disable: [
+                function(date) {
+                    return (date.getDay() === 0 || date.getDay() === 6);
+                },
+                function(date) {
+                    let formattedDate = date.getFullYear() + "-" +
+                        String(date.getMonth() + 1).padStart(2, '0') + "-" +
+                        String(date.getDate()).padStart(2, '0');
+
+                    return allUnavailableDates.includes(formattedDate);
+                }
+            ],
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                let date = dayElem.dateObj;
+                let formattedDate = date.getFullYear() + "-" +
+                    String(date.getMonth() + 1).padStart(2, '0') + "-" +
+                    String(date.getDate()).padStart(2, '0');
+
+                // Apply CSS classes based on the reason
+                if (userBookedDates.includes(formattedDate)) {
+                    dayElem.classList.add("is-user-booked");
+                    dayElem.title = "You already have an appointment on this date!"; // Tooltip!
+                } else if (blockedDates.includes(formattedDate)) {
+                    dayElem.classList.add("is-blocked");
+                    dayElem.title = "Office closed";
+                } else if (fullyBookedDates.includes(formattedDate)) {
+                    dayElem.classList.add("is-booked");
+                    dayElem.title = "Fully booked";
+                }
+            },
+            
+            onChange: function(selectedDates, dateStr, instance) {
+                document.getElementById('dateInput').value = dateStr;
+                updateTimeSlots();
+            }
+        });
+    </script>
+
+    <script>
+        // Define 1-hour time slots (8:00 AM to 4:00 PM, skipping 1:00 PM for lunch)
+        const hourlySlots = [
+            "08:00", // 8:00 AM - 9:00 AM
+            "09:00", // 9:00 AM - 10:00 AM
+            "10:00", // 10:00 AM - 11:00 AM
+            "11:00", // 11:00 AM - 12:00 PM
+            "12:00", // 12:00 PM - 1:00 PM
+            // 13:00 is skipped for lunch
+            "14:00", // 2:00 PM - 3:00 PM
+            "15:00" // 3:00 PM - 4:00 PM
         ];
 
         function updateTimeSlots() {
@@ -228,24 +307,23 @@
                 return;
             }
 
-            // 2. Determine allowed slots based on day
-            let allowedSlots = [];
-            if (dayOfWeek === 5) { // Friday
-                allowedSlots = fridaySlots;
-            } else { // Monday (1) to Thursday (4)
-                allowedSlots = monThuSlots;
-            }
-
-            // 3. Populate the dropdown
-            allowedSlots.forEach(time => {
+            // 2. Populate the dropdown with 1-hour slots for all weekdays
+            hourlySlots.forEach(time => {
                 let option = document.createElement('option');
                 option.value = time;
-                // Format time for display (e.g., "08:00" -> "8:00 AM")
+
+                // Format time for display (e.g., "08:00" -> "8:00 AM - 9:00 AM")
                 let [hours, minutes] = time.split(':');
-                let ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; // the hour '0' should be '12'
-                option.text = `${hours}:${minutes} ${ampm}`;
+                let startHour = parseInt(hours);
+                let endHour = startHour + 1;
+
+                let startAmPm = startHour >= 12 ? 'PM' : 'AM';
+                let endAmPm = endHour >= 12 ? 'PM' : 'AM';
+
+                let displayStartHour = startHour % 12 || 12;
+                let displayEndHour = endHour % 12 || 12;
+
+                option.text = `${displayStartHour}:00 ${startAmPm} - ${displayEndHour}:00 ${endAmPm}`;
                 timeSelect.appendChild(option);
             });
 
