@@ -14,12 +14,13 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is logged in AND is an admin
-        if (Auth::check() && Auth::user()->role === 'admin') {
+        // 1. Check if user is logged in
+        // 2. Check if user is 'admin' OR 'super_admin' (so SuperAdmins can see admin pages too)
+        if (Auth::check() && (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin')) {
             return $next($request);
         }
 
-        // If not admin, redirect to home
+        // If not authorized, send them back to the user dashboard
         return redirect('/dashboard')->with('error', 'You do not have admin access.');
     }
 }

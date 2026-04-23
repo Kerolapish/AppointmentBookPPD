@@ -24,99 +24,114 @@
     </style>
 </head>
 
-</head>
-
 <body class="antialiased text-gray-800 relative">
 
+    {{-- Watermark Logo Background --}}
     <div class="fixed inset-0 pointer-events-none opacity-[0.05] bg-center bg-no-repeat z-0"
         style="background-image: url('{{ asset('images/logoppd.png') }}'); background-size: 500px;">
     </div>
 
     <div class="min-h-screen flex flex-col relative z-10">
 
+        {{-- Navigation Bar --}}
         <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
 
                     <div class="flex items-center gap-8">
+                        {{-- Brand Section --}}
                         <div class="flex-shrink-0 flex items-center gap-3">
-
-                            <div class="flex items-center gap-3">
-                                <img src="{{ asset('images/logokpm.png') }}" alt="KPM Logo"
-                                    class="h-14 w-auto object-contain">
-                            </div>
-
+                            <img src="{{ asset('images/logokpm.png') }}" alt="KPM Logo"
+                                class="h-14 w-auto object-contain">
                             <div class="leading-tight border-l-2 border-gray-200 pl-3">
                                 <h1 class="font-bold text-gray-900 text-xl">PPD Kluang</h1>
                                 <p class="text-xs text-gray-500 uppercase tracking-wider font-bold">Appointment System
                                 </p>
                             </div>
-
                         </div>
 
-                        <div class="hidden sm:flex sm:space-x-8 text-sm font-medium">
-                            {{-- ===== ADMIN LINKS ===== --}}
-                            @if (Auth::check() && Auth::user()->role == 'admin')
-                                <a href="{{ route('admin.dashboard') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.dashboard') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-house"></i> Dashboard
+                        {{-- Main Navigation Links --}}
+                        <div class="hidden sm:flex sm:space-x-6 items-center text-sm font-medium">
+
+                            {{-- ===== SUPER ADMIN LINKS ===== --}}
+                            @if (Auth::check() && Auth::user()->role === 'super_admin')
+                                <a href="{{ route('super_admin.dashboard') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-crown"></i> Master Dashboard
                                 </a>
 
-                                <a href="{{ route('admin.requests') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.requests') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-check"></i> Request
+                                <a href="{{ route('super_admin.reports') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-chart-pie"></i> Users
                                 </a>
 
-                                <a href="{{ route('admin.users') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.users') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-user"></i> Users
+                                <a href="{{ route('super_admin.users') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.users') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-users"></i> Users
                                 </a>
 
-                                <a href="{{ route('admin.availability') }}"
-                                    class="nav-link {{ request()->routeIs('admin.availability') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
+                                <a href="{{ route('super_admin.availability') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.availability*') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fas fa-calendar-times"></i> Availability
                                 </a>
 
+                                {{-- ===== REGULAR ADMIN LINKS ===== --}}
+                            @elseif (Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-house"></i> Dashboard
+                                </a>
+                                <a href="{{ route('admin.requests') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.requests') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-check"></i> Request
+                                </a>
+                                <a href="{{ route('admin.users') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.users') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-user"></i> Users
+                                </a>
+                                <a href="{{ route('admin.availability') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.availability') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fas fa-calendar-times"></i> Availability
+                                </a>
                                 <a href="{{ route('admin.reports') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.reports') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fa-solid fa-file"></i> Report
                                 </a>
 
                                 {{-- ===== USER LINKS ===== --}}
                             @else
                                 <a href="{{ route('dashboard') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fa-solid fa-house"></i> Dashboard
                                 </a>
-
                                 <a href="{{ route('appointments.create') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('appointments.create') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('appointments.create') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fa-solid fa-calendar-plus"></i> Book Appointment
                                 </a>
-
                                 <a href="{{ route('my.appointments') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('my.appointments') ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600' }}">
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('my.appointments') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fa-solid fa-list-check"></i> My Appointments
                                 </a>
                             @endif
                         </div>
                     </div>
 
+                    {{-- User Profile Dropdown --}}
                     <div class="hidden sm:flex sm:items-center sm:ml-6">
-
                         <div class="relative ml-3">
-
                             <button type="button" onclick="toggleUserDropdown()"
                                 class="flex items-center gap-3 focus:outline-none transition hover:bg-gray-50 rounded-lg p-2 group"
-                                id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                id="user-menu-button">
 
                                 <div class="text-right hidden md:block">
                                     <div
                                         class="text-sm font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition">
-                                        {{ Auth::user()->name }}</div>
+                                        {{ Auth::user()->name }}
+                                    </div>
                                     <div
-                                        class="text-[10px] uppercase {{ Auth::user()->role == 'admin' ? 'text-blue-600 bg-blue-50' : 'text-green-600 bg-green-50' }} font-bold px-2 py-0.5 rounded-full inline-block mt-0.5">
-                                        {{ Auth::user()->role == 'admin' ? 'Admin' : 'User' }}
+                                        class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 
+                                        {{ Auth::user()->role === 'super_admin' ? 'text-purple-600 bg-purple-50' : (Auth::user()->role === 'admin' ? 'text-blue-600 bg-blue-50' : 'text-green-600 bg-green-50') }}">
+                                        {{ str_replace('_', ' ', Auth::user()->role) }}
                                     </div>
                                 </div>
 
@@ -135,14 +150,9 @@
                                 </svg>
                             </button>
 
+                            {{-- Dropdown Content --}}
                             <div id="user-dropdown-menu"
                                 class="hidden absolute right-0 mt-2 w-56 rounded-xl shadow-lg py-2 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 transform transition-all duration-200 origin-top-right">
-
-                                <div class="px-4 py-3 border-b border-gray-100 md:hidden">
-                                    <p class="text-xs text-gray-500">Signed in as</p>
-                                    <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
-                                </div>
-
                                 <div class="px-2 pt-1">
                                     <a href="{{ route('profile.show') }}"
                                         class="group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">
@@ -153,9 +163,7 @@
                                         My Profile
                                     </a>
                                 </div>
-
                                 <div class="border-t border-gray-100 my-1 mx-2"></div>
-
                                 <div class="px-2 pb-1">
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
@@ -173,23 +181,25 @@
                         </div>
                     </div>
 
+                    {{-- Mobile Menu Button --}}
                     <div class="-me-2 flex items-center sm:hidden">
                         <button
                             class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none">
                             <i class="fa-solid fa-bars text-xl"></i>
                         </button>
                     </div>
-
                 </div>
             </div>
         </nav>
 
+        {{-- Content Area --}}
         <main class="flex-1 py-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 @yield('content')
             </div>
         </main>
 
+        {{-- Footer --}}
         <footer class="bg-white border-t border-gray-200 mt-auto py-6">
             <div class="max-w-7xl mx-auto px-4 text-center">
                 <p class="text-xs text-gray-400">© {{ date('Y') }} Pejabat Pendidikan Daerah Kluang. All rights
@@ -199,36 +209,23 @@
 
     </div>
 
-    {{-- SCRIPTS FOR DROPDOWN INTERACTION --}}
+    {{-- Dropdown Scripts --}}
     <script>
         function toggleUserDropdown() {
             const dropdown = document.getElementById('user-dropdown-menu');
-
             if (dropdown.classList.contains('hidden')) {
-                // Show dropdown
                 dropdown.classList.remove('hidden');
-                // Animation classes
                 dropdown.classList.add('opacity-100', 'scale-100');
-                dropdown.classList.remove('opacity-0', 'scale-95');
             } else {
-                // Hide dropdown
                 dropdown.classList.add('hidden');
-                dropdown.classList.remove('opacity-100', 'scale-100');
-                dropdown.classList.add('opacity-0', 'scale-95');
             }
         }
 
-        // Close dropdown when clicking outside
         window.onclick = function(event) {
             const button = document.getElementById('user-menu-button');
             const dropdown = document.getElementById('user-dropdown-menu');
-
-            // Check if click was outside the button AND outside the dropdown
-            if (button && !button.contains(event.target) && dropdown && !dropdown.contains(event.target) && !dropdown
-                .classList.contains('hidden')) {
+            if (button && !button.contains(event.target) && dropdown && !dropdown.contains(event.target)) {
                 dropdown.classList.add('hidden');
-                dropdown.classList.remove('opacity-100', 'scale-100');
-                dropdown.classList.add('opacity-0', 'scale-95');
             }
         }
     </script>
