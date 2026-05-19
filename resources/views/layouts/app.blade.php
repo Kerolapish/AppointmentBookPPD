@@ -8,8 +8,10 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <style>
         body {
@@ -62,7 +64,7 @@
 
                                 <a href="{{ route('super_admin.reports') }}"
                                     class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-chart-pie"></i> Users
+                                    <i class="fa-solid fa-chart-pie"></i> Reports
                                 </a>
 
                                 <a href="{{ route('super_admin.users') }}"

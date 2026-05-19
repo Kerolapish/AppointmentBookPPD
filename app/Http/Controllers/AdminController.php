@@ -188,7 +188,10 @@ class AdminController extends Controller
     public function approve($id)
     {
         $appointment = Appointment::findOrFail($id);
+
+        // UPDATED: Save the ID of the admin who clicked approve
         $appointment->status = 'approved';
+        $appointment->approved_by = auth()->id();
         $appointment->save();
 
         // Custom message for Approval
@@ -284,5 +287,19 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             Log::error('WhatsApp Error: ' . $e->getMessage());
         }
+    }
+
+    public function getBookedTimes(Request $request)
+    {
+        $date = $request->query('date');
+
+        // Get all times already booked for this date
+        // Adjust 'time' to match your column name in the database
+        $bookedTimes = Appointment::where('date', $date)
+            ->whereIn('status', ['pending', 'approved']) // Don't block if 'rejected' or 'cancelled'
+            ->pluck('time')
+            ->toArray();
+
+        return response()->json($bookedTimes);
     }
 }

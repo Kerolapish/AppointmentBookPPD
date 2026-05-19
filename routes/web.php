@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my-appointments', [AppointmentController::class, 'index'])->name('my.appointments');
     Route::patch('/appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::patch('/appointment/{id}/update-time', [AppointmentController::class, 'updateTime'])->name('user.appointment.updateTime');
+    Route::get('/get-booked-times', [AppointmentController::class, 'getBookedTimes'])->name('appointments.booked-times');
 });
 
 // PROFILE ROUTES

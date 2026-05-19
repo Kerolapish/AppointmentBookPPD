@@ -126,7 +126,31 @@
                             <label class="block text-xs font-bold text-gray-700 mb-2">Select Date</label>
                             <input type="text" name="date" id="dateInput" required placeholder="Select a date below"
                                 class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 transition hidden">
-                            <p id="dateError" class="text-red-500 text-xs mt-1 hidden">Please select a valid weekday.</p>
+
+                            <div class="mt-4 grid grid-cols-2 gap-2 text-[10px] font-semibold uppercase tracking-wider">
+                                <div
+                                    class="flex items-center gap-2 p-2 rounded bg-blue-50 border border-blue-100 text-blue-700">
+                                    <span class="w-3 h-3 rounded-full bg-[#dbeafe] border border-[#bfdbfe]"></span>
+                                    <span>Your Bookings</span>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 p-2 rounded bg-red-50 border border-red-100 text-red-700">
+                                    <span class="w-3 h-3 rounded-full bg-[#fee2e2] border border-[#fca5a5]"></span>
+                                    <span>Unavailable / Full</span>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 p-2 rounded bg-gray-50 border border-gray-200 text-gray-500">
+                                    <span class="w-3 h-3 rounded-full bg-white border border-gray-300"></span>
+                                    <span>Available Slots</span>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 p-2 rounded bg-gray-100 border border-gray-200 text-gray-600">
+                                    <span class="w-3 h-3 rounded-full bg-gray-200"></span>
+                                    <span>Weekends</span>
+                                </div>
+                            </div>
+
+                            <p id="dateError" class="text-red-500 text-xs mt-2 hidden">Please select a valid weekday.</p>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2">Select Time</label>
@@ -262,7 +286,7 @@
                     dayElem.title = "Fully booked";
                 }
             },
-            
+
             onChange: function(selectedDates, dateStr, instance) {
                 document.getElementById('dateInput').value = dateStr;
                 updateTimeSlots();
@@ -283,51 +307,56 @@
             "15:00" // 3:00 PM - 4:00 PM
         ];
 
-        function updateTimeSlots() {
+        async function updateTimeSlots() {
             const dateInput = document.getElementById('dateInput');
             const timeSelect = document.getElementById('timeSelect');
             const dateError = document.getElementById('dateError');
 
-            // Reset time select
-            timeSelect.innerHTML = '<option value="">Select Time...</option>';
+            timeSelect.innerHTML = '<option value="">Loading availability...</option>';
             timeSelect.disabled = true;
-            dateError.classList.add('hidden');
 
-            if (!dateInput.value) {
-                return;
+            if (!dateInput.value) return;
+
+            try {
+                // Fetch booked times from the server
+                const response = await fetch(`{{ route('appointments.booked-times') }}?date=${dateInput.value}`);
+                const bookedTimes = await response.json();
+
+                timeSelect.innerHTML = '<option value="">Select Time...</option>';
+
+                hourlySlots.forEach(time => {
+                    let option = document.createElement('option');
+                    option.value = time;
+
+                    // Check if this specific time is in the bookedTimes array
+                    const isBooked = bookedTimes.includes(time);
+
+                    // Format display text
+                    let [hours] = time.split(':');
+                    let startHour = parseInt(hours);
+                    let endHour = startHour + 1;
+                    let startAmPm = startHour >= 12 ? 'PM' : 'AM';
+                    let endAmPm = endHour >= 12 ? 'PM' : 'AM';
+                    let displayStartHour = startHour % 12 || 12;
+                    let displayEndHour = endHour % 12 || 12;
+
+                    option.text = `${displayStartHour}:00 ${startAmPm} - ${displayEndHour}:00 ${endAmPm}`;
+
+                    if (isBooked) {
+                        option.disabled = true;
+                        option.text += ' (Fully Booked)';
+                        option.classList.add('text-red-400'); // Optional: make it look red
+                    }
+
+                    timeSelect.appendChild(option);
+                });
+
+                timeSelect.disabled = false;
+
+            } catch (error) {
+                console.error('Error fetching times:', error);
+                timeSelect.innerHTML = '<option value="">Error loading times</option>';
             }
-
-            const selectedDate = new Date(dateInput.value + "T00:00:00");
-            const dayOfWeek = selectedDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-
-            // 1. Check if Weekend (Saturday or Sunday)
-            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                dateError.classList.remove('hidden');
-                dateInput.value = ''; // Clear the invalid date
-                return;
-            }
-
-            // 2. Populate the dropdown with 1-hour slots for all weekdays
-            hourlySlots.forEach(time => {
-                let option = document.createElement('option');
-                option.value = time;
-
-                // Format time for display (e.g., "08:00" -> "8:00 AM - 9:00 AM")
-                let [hours, minutes] = time.split(':');
-                let startHour = parseInt(hours);
-                let endHour = startHour + 1;
-
-                let startAmPm = startHour >= 12 ? 'PM' : 'AM';
-                let endAmPm = endHour >= 12 ? 'PM' : 'AM';
-
-                let displayStartHour = startHour % 12 || 12;
-                let displayEndHour = endHour % 12 || 12;
-
-                option.text = `${displayStartHour}:00 ${startAmPm} - ${displayEndHour}:00 ${endAmPm}`;
-                timeSelect.appendChild(option);
-            });
-
-            timeSelect.disabled = false;
         }
     </script>
 

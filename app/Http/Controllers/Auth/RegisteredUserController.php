@@ -33,9 +33,9 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone_number, // <--- CRITICAL FIX: Save form input 'phone_number' to DB column 'phone'
+            'phone' => $request->phone_number,
             'password' => Hash::make($request->password),
-            'role' => 'user', // <--- FIXED: Hardcoded default role since form doesn't provide it
+            'role' => 'user',
         ]);
 
         event(new Registered($user));

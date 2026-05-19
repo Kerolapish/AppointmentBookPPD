@@ -1,23 +1,60 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <style>
+        /* Expand Flatpickr to fill the container */
+        .flatpickr-calendar.inline {
+            width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: transparent !important;
+        }
 
+        .flatpickr-innerContainer,
+        .flatpickr-rContainer,
+        .flatpickr-days,
+        .dayContainer {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .flatpickr-day {
+            max-width: 100% !important;
+            height: 45px !important;
+            /* Makes the rows taller */
+            line-height: 45px !important;
+            border-radius: 12px !important;
+        }
+
+        /* Status Colors */
+        .is-user-booked {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .is-booked {
+            background-color: #fee2e2 !important;
+            color: #ef4444 !important;
+            opacity: 0.7;
+        }
+    </style>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-gray-900">Welcome back, {{ explode(' ', Auth::user()->name)[0] }}!</h1>
             <p class="text-gray-500 text-sm mt-1">Manage your appointments with Pejabat Pendidikan Daerah Kluang</p>
         </div>
 
         <div class="space-y-8">
-
+            {{-- Stats Grid --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
+                {{-- Total Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
                             <i class="fa-solid fa-calendar-check text-xl"></i>
                         </div>
-                        {{-- Dynamic Badge --}}
                         <span
                             class="text-xs font-bold px-2 py-1 rounded-full {{ $percentageChange >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                             {{ $percentageChange > 0 ? '+' : '' }}{{ $percentageChange }}%
@@ -29,6 +66,7 @@
                     </div>
                 </div>
 
+                {{-- Pending Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-amber-50 rounded-lg text-amber-600">
@@ -42,6 +80,7 @@
                     </div>
                 </div>
 
+                {{-- Active Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-green-50 rounded-lg text-green-600">
@@ -55,6 +94,7 @@
                     </div>
                 </div>
 
+                {{-- Upcoming Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-purple-50 rounded-lg text-purple-600">
@@ -70,8 +110,8 @@
                 </div>
             </div>
 
+            {{-- Main Content Grid --}}
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
                 <div class="lg:col-span-3 space-y-6">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-gray-900">Upcoming Appointments</h2>
@@ -89,7 +129,6 @@
 
                         <div
                             class="mb-4 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition {{ $appointment->status === 'reschedule_requested' ? 'border-yellow-400 ring-1 ring-yellow-400' : '' }}">
-
                             <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div class="flex items-center gap-4 w-full">
                                     <div
@@ -98,7 +137,6 @@
                                             class="block text-xs font-bold uppercase tracking-wider">{{ $dateObj->format('M') }}</span>
                                         <span class="block text-xl font-bold">{{ $dateObj->format('d') }}</span>
                                     </div>
-
                                     <div>
                                         <h3 class="font-bold text-gray-900">{{ $appointment->purpose }}</h3>
                                         <p class="text-xs text-blue-500 font-semibold mb-1">{{ $appointment->ips }}</p>
@@ -109,13 +147,20 @@
                                             <span><i class="fa-solid fa-location-dot mr-1"></i>
                                                 {{ $appointment->location }}</span>
                                         </div>
+                                        @if ($appointment->status === 'approved' && $appointment->admin)
+                                            <div
+                                                class="mt-2 flex items-center gap-2 text-xs font-medium text-green-700 bg-green-50 w-fit px-2 py-1 rounded-md border border-green-100">
+                                                <i class="fa-solid fa-user-check"></i>
+                                                <span>Approved by: {{ $appointment->admin->name }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
 
                                 <div class="flex-shrink-0">
-                                    @if ($appointment->status == 'confirmed')
+                                    @if (in_array($appointment->status, ['approved', 'confirmed']))
                                         <span
-                                            class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">Confirmed</span>
+                                            class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">Approved</span>
                                     @elseif($appointment->status == 'pending')
                                         <span
                                             class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full">Pending</span>
@@ -155,20 +200,15 @@
 
                     @if ($upcomingAppointments->isEmpty())
                         <div class="p-10 text-center bg-white rounded-xl border border-dashed border-gray-200">
-                            <div class="inline-flex bg-gray-50 p-4 rounded-full mb-3 text-gray-400">
-                                <i class="fa-regular fa-calendar-xmark text-2xl"></i>
-                            </div>
                             <p class="text-gray-500 font-medium">No upcoming appointments.</p>
                             <a href="{{ route('appointments.create') }}"
-                                class="text-blue-600 text-sm font-bold mt-2 inline-block hover:underline">
-                                Book one now
-                            </a>
+                                class="text-blue-600 text-sm font-bold mt-2 inline-block hover:underline">Book one now</a>
                         </div>
                     @endif
                 </div>
 
+                {{-- Sidebar --}}
                 <div class="lg:col-span-1 space-y-6">
-
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-5 border-b border-gray-50">
                             <h3 class="font-bold text-gray-900">Quick Actions</h3>
@@ -180,126 +220,151 @@
                                     <span
                                         class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
                                         <i class="fa-solid fa-plus"></i>
-                                    </span>
-                                    New Appointment
+                                    </span> New Appointment
                                 </div>
                             </a>
-
                             <a href="{{ route('profile.edit') }}"
                                 class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
                                 <div class="flex items-center">
                                     <span
                                         class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
                                         <i class="fa-regular fa-user"></i>
-                                    </span>
-                                    Edit Profile
-                                </div>
-                            </a>
-
-                            <a href="{{ route('my.appointments') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
-                                <div class="flex items-center">
-                                    <span
-                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
-                                        <i class="fa-solid fa-clock-rotate-left"></i>
-                                    </span>
-                                    View History
+                                    </span> Edit Profile
                                 </div>
                             </a>
                         </div>
                     </div>
-
-                    <div
-                        class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 border border-purple-100 shadow-sm">
-                        <div class="flex items-start gap-3">
-                            <i class="fa-solid fa-lightbulb text-purple-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-bold text-purple-900 text-sm">Pro Tip</h4>
-                                <p class="text-xs text-purple-700 mt-1 leading-relaxed">
-                                    Book appointments early to secure your preferred time slot! Slots fill up fast.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="userRescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
-        role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
-                onclick="closeUserRescheduleModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    {{-- Reschedule Modal --}}
+<div id="userRescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-60" onclick="closeUserRescheduleModal()"></div>
+        <div class="relative bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+            
+            <div class="bg-yellow-50 px-6 py-5 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold text-yellow-900">Select New Appointment Time</h3>
+                <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl">&times;</button>
+            </div>
 
-            <div
-                class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-100">
-                <div class="bg-yellow-50 px-4 py-4 border-b border-yellow-200 flex justify-between items-center">
-                    <h3 class="text-lg leading-6 font-bold text-yellow-900" id="modal-title">
-                        <i class="fa-regular fa-calendar-check mr-2"></i> Pick New Appointment Time
-                    </h3>
-                    <button type="button" onclick="closeUserRescheduleModal()"
-                        class="text-yellow-600 hover:text-yellow-800">
-                        <i class="fa-solid fa-xmark text-xl"></i>
-                    </button>
+            <form id="userRescheduleForm" method="POST">
+                @csrf 
+                @method('PATCH')
+                
+                <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+                    <div class="md:col-span-7">
+                        <label class="block font-bold mb-3 text-gray-700">1. SELECT DATE</label>
+                        <div id="rescheduleCalendar" class="border rounded-xl p-2 bg-gray-50"></div>
+                        <input type="hidden" name="date" id="modal_new_date" required>
+                    </div>
+
+                    <div class="md:col-span-5">
+                        <label class="block font-bold mb-3 text-gray-700">2. AVAILABLE SLOTS</label>
+                        <select name="time" id="modal_new_time" required 
+                            class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
+                            <option value="">Select a date first...</option>
+                        </select>
+                    </div>
                 </div>
 
-                <form id="userRescheduleForm" method="POST" action="">
-                    @csrf
-                    @method('PATCH')
-
-                    <div class="bg-white px-4 pt-5 pb-6 sm:p-6 space-y-5">
-                        <p class="text-sm text-gray-500 mb-4">Please select a new date and time for your appointment. The
-                            request will be sent back to the admin for approval.</p>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">New Date</label>
-                                <input type="date" name="date" id="modal_new_date" required
-                                    min="{{ date('Y-m-d') }}"
-                                    class="w-full bg-white border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 sm:text-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1">New Time</label>
-                                <input type="time" name="time" id="modal_new_time" required
-                                    class="w-full bg-white border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 sm:text-sm focus:ring-yellow-500 focus:border-yellow-500 outline-none">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 px-4 py-3 border-t border-gray-100 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="submit"
-                            class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2.5 bg-yellow-500 text-base font-bold text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm transition">
-                            Submit New Time
-                        </button>
-                        <button type="button" onclick="closeUserRescheduleModal()"
-                            class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2.5 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="bg-gray-50 px-8 py-5 border-t flex justify-end gap-3">
+                    <button type="button" onclick="closeUserRescheduleModal()" class="px-6 py-2 border rounded-xl">Cancel</button>
+                    <button type="submit" class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New Time</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
     <script>
+        // 1. Data passed from Controller
+        const blockedDates = @json($blockedDates);
+        const fullyBookedDates = @json($fullyBookedDates);
+        const userBookedDates = @json($userBookedDates);
+        const hourlySlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00"];
+
+        let rescheduleFp;
+
         function openUserRescheduleModal(id, oldDate, oldTime) {
-            document.getElementById('modal_new_date').value = oldDate;
-            document.getElementById('modal_new_time').value = oldTime;
+            console.log("Opening modal for ID:", id); // Debug check
 
-            // Set the form action URL
-            let form = document.getElementById('userRescheduleForm');
+            // Set the form action dynamically
+            const form = document.getElementById('userRescheduleForm');
+            form.action = `/appointment/${id}/update-time`;
 
-            // Updated to match your route perfectly!
-            form.action = '/appointment/' + id + '/update-time';
+            // Reset time dropdown
+            document.getElementById('modal_new_time').innerHTML = '<option value="">Select a date first...</option>';
 
+            // Initialize Flatpickr
+            rescheduleFp = flatpickr("#rescheduleCalendar", {
+                inline: true,
+                static: true, // Keeps it pinned to the container
+                minDate: "today",
+                defaultDate: oldDate,
+                dateFormat: "Y-m-d",
+                disable: [
+                    function(date) {
+                        // Disable Weekends
+                        if (date.getDay() === 0 || date.getDay() === 6) return true;
+                        // Disable specific dates from admin or full slots
+                        const dStr = date.toISOString().split('T')[0];
+                        return [...blockedDates, ...fullyBookedDates].includes(dStr);
+                    }
+                ],
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+                    if (userBookedDates.includes(dateStr)) dayElem.classList.add("is-user-booked");
+                    if (fullyBookedDates.includes(dateStr)) dayElem.classList.add("is-booked");
+                },
+                onChange: function(selectedDates, dateStr) {
+                    document.getElementById('modal_new_date').value = dateStr;
+                    updateRescheduleTimeSlots(dateStr);
+                }
+            });
+
+            // Show the modal
             document.getElementById('userRescheduleModal').classList.remove('hidden');
+
+            // Auto-load slots if a date is already selected
+            if (oldDate) {
+                document.getElementById('modal_new_date').value = oldDate;
+                updateRescheduleTimeSlots(oldDate);
+            }
+        }
+
+        async function updateRescheduleTimeSlots(date) {
+            const timeSelect = document.getElementById('modal_new_time');
+            timeSelect.innerHTML = '<option value="">Loading slots...</option>';
+
+            try {
+                const response = await fetch(`{{ route('appointments.booked-times') }}?date=${date}`);
+                const bookedTimes = await response.json();
+
+                timeSelect.innerHTML = '<option value="">Select Time...</option>';
+                hourlySlots.forEach(time => {
+                    let option = document.createElement('option');
+                    option.value = time;
+
+                    // Format for 12-hour display
+                    let hour = parseInt(time.split(':')[0]);
+                    let displayTime = (hour % 12 || 12) + ":00 " + (hour >= 12 ? 'PM' : 'AM');
+
+                    option.text = bookedTimes.includes(time) ? `${displayTime} (Full)` : displayTime;
+                    option.disabled = bookedTimes.includes(time);
+                    timeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Fetch error:", error);
+                timeSelect.innerHTML = '<option value="">Error loading times</option>';
+            }
         }
 
         function closeUserRescheduleModal() {
             document.getElementById('userRescheduleModal').classList.add('hidden');
+            if (rescheduleFp) rescheduleFp.destroy();
         }
     </script>
 @endsection

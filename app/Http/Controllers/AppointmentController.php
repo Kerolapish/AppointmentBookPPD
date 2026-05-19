@@ -358,7 +358,7 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::findOrFail($id);
 
-        if ($appointment->user_id !== auth()->id()) {
+        if ($appointment->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -400,5 +400,23 @@ class AppointmentController extends Controller
         $appointment->save();
 
         return redirect()->route('dashboard')->with('success', 'New appointment time submitted! Waiting for admin approval.');
+    }
+
+    public function getBookedTimes(Request $request)
+    {
+        $date = $request->query('date');
+
+        // Fetch times that are already taken for this date
+        // We only care about pending or approved appointments
+        $bookedTimes = \App\Models\Appointment::where('date', $date)
+            ->whereIn('status', ['pending', 'approved'])
+            ->pluck('time') // This gets the 'time' column values
+            ->map(function ($time) {
+                // This ensures the time format matches your JavaScript array exactly (e.g. "08:00")
+                return \Carbon\Carbon::parse($time)->format('H:i');
+            })
+            ->toArray();
+
+        return response()->json($bookedTimes);
     }
 }
