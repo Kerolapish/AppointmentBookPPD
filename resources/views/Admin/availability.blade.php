@@ -27,11 +27,11 @@
                 <div class="flex gap-6 p-2.5 bg-gray-50 rounded-lg border border-gray-200 max-w-md">
                     <label class="inline-flex items-center cursor-pointer font-medium text-sm text-gray-700">
                         <input type="radio" name="mode" value="single" checked onchange="toggleDateInputs('single')" class="text-blue-600 focus:ring-blue-500 border-gray-300">
-                        <span class="ml-2">☝️ Single Date</span>
+                        <span class="ml-2">Single Date</span>
                     </label>
                     <label class="inline-flex items-center cursor-pointer font-medium text-sm text-gray-700">
                         <input type="radio" name="mode" value="range" onchange="toggleDateInputs('range')" class="text-blue-600 focus:ring-blue-500 border-gray-300">
-                        <span class="ml-2">🗓️ Date Range</span>
+                        <span class="ml-2">Date Range</span>
                     </label>
                 </div>
             </div>

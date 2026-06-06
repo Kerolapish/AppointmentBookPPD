@@ -10,7 +10,7 @@ class AdminAvailabilityController extends Controller
 {
     public function index()
     {
-        // Change variable name from $blockedDates to $offDays
+        // Fetch and explicitly name it $offDays to match your view loop
         $offDays = OffDay::orderBy('off_date', 'asc')->paginate(10);
         return view('admin.availability', compact('offDays'));
     }
