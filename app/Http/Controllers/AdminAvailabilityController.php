@@ -10,8 +10,9 @@ class AdminAvailabilityController extends Controller
 {
     public function index()
     {
-        $offDays = OffDay::orderBy('off_date', 'asc')->get();
-        return view('admin.availability', compact('offDays'));
+        // Fetch matching what your original view loop variable expects
+        $blockedDates = OffDay::orderBy('off_date', 'asc')->paginate(10);
+        return view('admin.availability', compact('blockedDates'));
     }
 
     public function store(Request $request)
@@ -33,13 +34,12 @@ class AdminAvailabilityController extends Controller
                 ['off_date' => Carbon::parse($request->off_date)->format('Y-m-d')],
                 ['reason' => $reason]
             );
-        } 
-        // 3. Handle Multiple Date Range Selection
+        }
+        // 3. Handle Multiple Date Range Selection (Super Admin feature)
         elseif ($request->mode === 'range') {
             $startDate = Carbon::parse($request->start_date);
             $endDate = Carbon::parse($request->end_date);
 
-            // Clone $startDate instance to avoid modifying original instance inside condition evaluation
             for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
                 OffDay::firstOrCreate(
                     ['off_date' => $date->format('Y-m-d')],

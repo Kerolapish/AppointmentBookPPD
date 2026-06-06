@@ -7,7 +7,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8 p-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">Block a New Date</h3>
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Block Dates / Off Days (Super Admin)</h3>
 
         @if (session('success'))
             <div class="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm border border-green-200">
@@ -20,31 +20,59 @@
             </div>
         @endif
 
-        <form action="{{ route('super_admin.availability.store') }}" method="POST"
-            class="flex flex-col sm:flex-row gap-4 items-end">
+        <form action="{{ route('super_admin.availability.store') }}" method="POST" class="space-y-4">
             @csrf
 
-            {{-- Date Input - Balanced Padding --}}
-            <div class="w-full sm:w-1/3">
-                <label class="block text-sm font-bold text-gray-700 mb-1.5">Select Date</label>
-                <input type="date" name="date" required min="{{ date('Y-m-d') }}"
-                    class="w-full border border-gray-400 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 bg-white shadow-sm transition-all">
+            <div class="w-full">
+                <label class="block text-sm font-bold text-gray-700 mb-1.5">Blocking Mode</label>
+                <div class="flex gap-6 p-2.5 bg-gray-50 rounded-lg border border-gray-200 max-w-md">
+                    <label class="inline-flex items-center cursor-pointer font-medium text-sm text-gray-700">
+                        <input type="radio" name="mode" value="single" checked onchange="toggleDateInputs('single')"
+                            class="text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <span class="ml-2">☝️ Single Date</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer font-medium text-sm text-gray-700">
+                        <input type="radio" name="mode" value="range" onchange="toggleDateInputs('range')"
+                            class="text-blue-600 focus:ring-blue-500 border-gray-300">
+                        <span class="ml-2">🗓️ Date Range (Multiple Days)</span>
+                    </label>
+                </div>
             </div>
 
-            {{-- Reason Input - Sharp Lines & Correct Text Size --}}
-            <div class="w-full sm:w-1/2">
-                <label class="block text-sm font-bold text-gray-700 mb-1.5">Reason (Optional)</label>
-                <input type="text" name="reason" placeholder="e.g., Hari Raya Aidilfitri, Office Maintenance"
-                    class="w-full border border-gray-400 rounded-lg py-2 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-500 placeholder-opacity-100 bg-white shadow-sm transition-all">
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
 
-            {{-- Submit Button - Aligned Height --}}
-            <div class="w-full sm:w-auto">
-                <button type="submit"
-                    class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md flex items-center justify-center gap-2 mb-[1px]">
-                    <i class="fa-solid fa-trash-can"></i>
-                    Block Date
-                </button>
+                <div id="single_date_container" class="w-full">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Select Date</label>
+                    <input type="date" id="off_date" name="off_date" min="{{ date('Y-m-d') }}"
+                        class="w-full border border-gray-400 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 bg-white shadow-sm transition-all">
+                </div>
+
+                <div id="range_date_container" class="hidden md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" min="{{ date('Y-m-d') }}"
+                            class="w-full border border-gray-400 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 bg-white shadow-sm transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">End Date</label>
+                        <input type="date" id="end_date" name="end_date" min="{{ date('Y-m-d') }}"
+                            class="w-full border border-gray-400 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 bg-white shadow-sm transition-all">
+                    </div>
+                </div>
+
+                <div id="reason_field_container" class="w-full md:col-span-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-1.5">Reason (Optional)</label>
+                    <input type="text" name="reason" placeholder="e.g., Public Holiday, Outstation"
+                        class="w-full border border-gray-400 rounded-lg py-2 px-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 placeholder-gray-500 bg-white shadow-sm transition-all">
+                </div>
+
+                <div class="w-full md:w-auto">
+                    <button type="submit"
+                        class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md flex items-center justify-center gap-2 mb-[1px]">
+                        <i class="fa-solid fa-lock"></i>
+                        Block Selection
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -65,13 +93,14 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($blockedDates as $blocked)
+                    @forelse ($offDays as $blocked)
+                        {{-- Changed from $blockedDates to $offDays to match your controller compact value --}}
                         <tr class="hover:bg-red-50/30 transition-colors">
                             <td class="px-6 py-4 font-medium text-gray-900">
-                                {{ \Carbon\Carbon::parse($blocked->date)->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($blocked->off_date)->format('d M Y') }} {{-- Adjusted variable accessor from ->date to ->off_date --}}
                             </td>
                             <td class="px-6 py-4 text-gray-600">
-                                {{ \Carbon\Carbon::parse($blocked->date)->format('l') }}
+                                {{ \Carbon\Carbon::parse($blocked->off_date)->format('l') }}
                             </td>
                             <td class="px-6 py-4 text-gray-600">
                                 {{ $blocked->reason ?? 'Not specified' }}
@@ -99,10 +128,55 @@
             </table>
         </div>
 
-        @if ($blockedDates->hasPages())
+        @if (method_exists($offDays, 'hasPages') && $offDays->hasPages())
             <div class="p-4 border-t border-gray-200 bg-gray-50">
-                {{ $blockedDates->links() }}
+                {{ $offDays->links() }}
             </div>
         @endif
     </div>
+
+    <script>
+        function toggleDateInputs(mode) {
+            const singleContainer = document.getElementById('single_date_container');
+            const rangeContainer = document.getElementById('range_date_container');
+            const formGrid = singleContainer.parentElement;
+
+            const singleInput = document.getElementById('off_date');
+            const startInput = document.getElementById('start_date');
+            const endInput = document.getElementById('end_date');
+
+            if (mode === 'single') {
+                singleContainer.classList.remove('hidden');
+                rangeContainer.classList.add('hidden');
+
+                // Adjust responsive classes layout dynamically
+                formGrid.classList.remove('md:grid-cols-4');
+                formGrid.classList.add('md:grid-cols-3');
+
+                singleInput.required = true;
+                startInput.required = false;
+                endInput.required = false;
+
+                startInput.value = '';
+                endInput.value = '';
+            } else {
+                singleContainer.classList.add('hidden');
+                rangeContainer.classList.remove('hidden');
+
+                formGrid.classList.remove('md:grid-cols-3');
+                formGrid.classList.add('md:grid-cols-4');
+
+                singleInput.required = false;
+                startInput.required = true;
+                endInput.required = true;
+
+                singleInput.value = '';
+            }
+        }
+
+        // Initialize state on load
+        document.addEventListener("DOMContentLoaded", function() {
+            toggleDateInputs('single');
+        });
+    </script>
 @endsection
