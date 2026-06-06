@@ -129,6 +129,12 @@
                                             </form>
 
                                             <button type="button"
+                                                onclick="openRescheduleModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}')"
+                                                class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-yellow-100 transition border border-yellow-200">
+                                                Reschedule
+                                            </button>
+
+                                            <button type="button"
                                                 onclick="openRejectModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}', '{{ $apt->ips ?? '' }}', '{{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}', '{{ $apt->user->email }}')"
                                                 class="px-4 py-2 bg-red-50 text-red-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-100 transition border border-red-200">
                                                 Reject
@@ -178,16 +184,16 @@
                                 </td>
                                 <td class="px-6 py-4 text-gray-600">{{ $apt->user->phone ?? '-' }}</td>
                                 <td class="px-6 py-4 text-gray-600">{{ $apt->user->email }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <div class="flex items-center justify-center gap-3">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex items-center justify-center gap-2">
                                         <span
-                                            class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            class="px-3 py-2 inline-flex text-xs leading-5 font-semibold rounded-lg bg-green-100 text-green-800 border border-green-200">
                                             Confirmed
                                         </span>
 
                                         <button type="button"
                                             onclick="openRescheduleModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}')"
-                                            class="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-semibold hover:bg-yellow-100 transition border border-yellow-200">
+                                            class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-yellow-100 transition border border-yellow-200">
                                             Reschedule
                                         </button>
                                     </div>
