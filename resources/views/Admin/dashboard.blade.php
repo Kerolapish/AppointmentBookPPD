@@ -46,10 +46,27 @@
         </div>
 
         <div>
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-900">Recent Requests</h3>
-                <a href="{{ route('admin.requests') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View
-                    All</a>
+            <div class="flex items-center justify-between mb-4 flex-col sm:flex-row gap-4">
+                <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+                    <h3 class="text-lg font-bold text-gray-900">Recent Requests</h3>
+                    <a href="{{ route('admin.requests') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        View All
+                    </a>
+                </div>
+
+                <form action="{{ route('admin.dashboard') }}" method="GET" id="statusFilterForm"
+                    class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <label for="status" class="text-sm font-medium text-gray-600">Status:</label>
+                    <select name="status" id="status" onchange="document.getElementById('statusFilterForm').submit();"
+                        class="rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm text-gray-700 bg-white px-3 py-1.5 border">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
+                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>✅ Confirmed
+                        </option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>❌ Rejected
+                        </option>
+                    </select>
+                </form>
             </div>
 
             <div class="space-y-4">
@@ -69,12 +86,10 @@
                             <h4 class="text-md font-bold text-gray-900">{{ $appointment->purpose }}</h4>
                             <div
                                 class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-500 mt-1">
-
                                 <span class="flex items-center justify-center sm:justify-start gap-1">
                                     <i class="fa-regular fa-user text-gray-400"></i>
                                     {{ $appointment->user->name ?? 'Unknown User' }}
                                 </span>
-
                                 <span class="flex items-center justify-center sm:justify-start gap-1">
                                     <i class="fa-regular fa-clock text-gray-400"></i>
                                     {{ \Carbon\Carbon::parse($appointment->time)->format('h:i A') }}
@@ -87,7 +102,8 @@
                                 <span class="bg-yellow-100 text-yellow-700 text-xs font-bold px-4 py-2 rounded-full">
                                     Pending
                                 </span>
-                            @elseif($appointment->status == 'confirmed')
+                                {{-- FIXED: Changed checking from 'confirmed' to 'approved' to match database records --}}
+                            @elseif($appointment->status == 'approved' || $appointment->status == 'confirmed')
                                 <span class="bg-green-100 text-green-700 text-xs font-bold px-4 py-2 rounded-full">
                                     Confirmed
                                 </span>
@@ -101,7 +117,7 @@
                     </div>
                 @empty
                     <div class="text-center py-10 bg-white rounded-xl border border-gray-100">
-                        <p class="text-gray-500">No recent appointments found.</p>
+                        <p class="text-gray-500">No appointments found matching this status.</p>
                     </div>
                 @endforelse
             </div>

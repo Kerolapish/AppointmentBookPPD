@@ -19,19 +19,24 @@ class AdminController extends Controller
     // 1. DASHBOARD PAGE
     // Route: /admin/dashboard
     // ==========================================
-    public function index()
+    public function index(Request $request)
     {
-        // Calculate counts for the 3 colored cards
+        // Calculate counts for the 3 colored status cards (these remain constant numbers)
         $pendingCount = Appointment::where('status', 'pending')->count();
         $approvedCount = Appointment::where('status', 'approved')->count();
         $rejectedCount = Appointment::where('status', 'rejected')->count();
 
-        // Get recent appointments (paginated for the list at the bottom)
-        $appointments = Appointment::with('user')
-            ->latest()
-            ->paginate(5); 
+        // Start base query for the interactive recent appointments table
+        $query = Appointment::with('user');
 
-        // FIXED: Capitalized "Admin" to match your Linux server directory
+        // DROPDOWN FILTER LOGIC: Apply filter if selected from dropdown
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Get recent appointments (paginated, 5 per page)
+        $appointments = $query->latest()->paginate(5);
+
         return view('Admin.dashboard', compact(
             'pendingCount',
             'approvedCount',
@@ -82,7 +87,7 @@ class AdminController extends Controller
     public function reports(Request $request)
     {
         $query = Appointment::query();
-        $filter = $request->get('filter', 'month'); 
+        $filter = $request->get('filter', 'month');
 
         $startDate = Carbon::now()->startOfMonth();
         $endDate = Carbon::now()->endOfMonth();
@@ -198,7 +203,7 @@ class AdminController extends Controller
         }
 
         $appointment->status = 'rejected';
-        $appointment->reject_reason = $reason; 
+        $appointment->reject_reason = $reason;
         $appointment->save();
 
         $dateFormatted = Carbon::parse($appointment->date)->format('d M Y');
@@ -271,7 +276,7 @@ class AdminController extends Controller
         $date = $request->query('date');
 
         $bookedTimes = Appointment::where('date', $date)
-            ->whereIn('status', ['pending', 'approved']) 
+            ->whereIn('status', ['pending', 'approved'])
             ->pluck('time')
             ->toArray();
 
