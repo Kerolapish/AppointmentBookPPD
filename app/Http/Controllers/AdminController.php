@@ -23,16 +23,16 @@ class AdminController extends Controller
     {
         // Calculate counts for the 3 colored cards
         $pendingCount = Appointment::where('status', 'pending')->count();
-        // FIXED: Changed 'confirmed' to 'approved'
         $approvedCount = Appointment::where('status', 'approved')->count();
         $rejectedCount = Appointment::where('status', 'rejected')->count();
 
         // Get recent appointments (paginated for the list at the bottom)
         $appointments = Appointment::with('user')
             ->latest()
-            ->paginate(5); // Shows 5 per page on dashboard
+            ->paginate(5); 
 
-        return view('admin.dashboard', compact(
+        // FIXED: Capitalized "Admin" to match your Linux server directory
+        return view('Admin.dashboard', compact(
             'pendingCount',
             'approvedCount',
             'rejectedCount',
@@ -46,15 +46,12 @@ class AdminController extends Controller
     // ==========================================
     public function appointments(Request $request)
     {
-        // 1. Start a base query
         $query = Appointment::query();
 
-        // 2. SEARCH LOGIC: Filter by User Name (First 2 chars or more)
         if ($request->filled('search')) {
             $query->where('name', 'like', $request->search . '%');
         }
 
-        // 3. DATE FILTER LOGIC: Today, Week, Month
         if ($request->filled('filter')) {
             switch ($request->filter) {
                 case 'today':
@@ -70,13 +67,12 @@ class AdminController extends Controller
             }
         }
 
-        // 4. Get the results based on the filtered query
         $pending = (clone $query)->where('status', 'pending')->orderBy('date', 'asc')->get();
-        // FIXED: Changed 'confirmed' to 'approved'
         $approved = (clone $query)->where('status', 'approved')->orderBy('date', 'asc')->get();
         $rejected = (clone $query)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
-        return view('admin.requests', compact('pending', 'approved', 'rejected'));
+        // FIXED: Capitalized "Admin" to match your Linux server directory
+        return view('Admin.requests', compact('pending', 'approved', 'rejected'));
     }
 
     // ==========================================
@@ -85,9 +81,8 @@ class AdminController extends Controller
     // ==========================================
     public function reports(Request $request)
     {
-        // 1. Determine Date Range based on Filter
         $query = Appointment::query();
-        $filter = $request->get('filter', 'month'); // Default to 'month'
+        $filter = $request->get('filter', 'month'); 
 
         $startDate = Carbon::now()->startOfMonth();
         $endDate = Carbon::now()->endOfMonth();
@@ -100,20 +95,17 @@ class AdminController extends Controller
             $endDate = Carbon::now()->endOfYear();
         }
 
-        // 2. Apply Date Filter
         $query->whereBetween('date', [$startDate, $endDate]);
 
-        // 3. Get Data for Cards & Charts
         $totalAppointments = (clone $query)->count();
         $pending = (clone $query)->where('status', 'pending')->count();
-        // FIXED: Changed 'confirmed' to 'approved'
         $approved = (clone $query)->where('status', 'approved')->count();
         $rejected = (clone $query)->where('status', 'rejected')->count();
 
-        // Get Table Data
         $appointments = (clone $query)->orderBy('date', 'desc')->get();
 
-        return view('admin.reports', compact('totalAppointments', 'pending', 'approved', 'rejected', 'appointments', 'filter', 'startDate', 'endDate'));
+        // FIXED: Capitalized "Admin" to match your Linux server directory
+        return view('Admin.reports', compact('totalAppointments', 'pending', 'approved', 'rejected', 'appointments', 'filter', 'startDate', 'endDate'));
     }
 
     public function downloadReportPdf(Request $request)
@@ -122,7 +114,6 @@ class AdminController extends Controller
         $query = Appointment::query();
         $now = Carbon::now();
 
-        // 1. Apply Filter
         if ($filter == 'week') {
             $startDate = $now->copy()->startOfWeek();
             $endDate = $now->copy()->endOfWeek();
@@ -136,10 +127,8 @@ class AdminController extends Controller
 
         $appointments = $query->whereBetween('date', [$startDate, $endDate])->get();
 
-        // 2. Count Stats
         $totalAppointments = $appointments->count();
         $pending = $appointments->where('status', 'pending')->count();
-        // FIXED: Changed 'confirmed' to 'approved'
         $approved = $appointments->where('status', 'approved')->count();
         $rejected = $appointments->where('status', 'rejected')->count();
 
@@ -154,17 +143,15 @@ class AdminController extends Controller
             'endDate'
         );
 
-        // 3. Load PDF
-        $pdf = Pdf::loadView('admin.report_pdf', $data);
+        // FIXED: Capitalized "Admin" to match your Linux server directory
+        $pdf = Pdf::loadView('Admin.report_pdf', $data);
         return $pdf->stream('report.pdf');
     }
 
     public function users(Request $request)
     {
-        // 1. Start with a base query
         $query = User::query();
 
-        // 2. Apply Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -174,11 +161,11 @@ class AdminController extends Controller
             });
         }
 
-        // 3. Separate the results into two groups
         $admins = (clone $query)->where('role', 'admin')->orderBy('created_at', 'desc')->get();
         $users  = (clone $query)->where('role', 'user')->orderBy('created_at', 'desc')->get();
 
-        return view('admin.users', compact('admins', 'users'));
+        // FIXED: Capitalized "Admin" to match your Linux server directory
+        return view('Admin.users', compact('admins', 'users'));
     }
 
     // ==========================================
@@ -189,12 +176,10 @@ class AdminController extends Controller
     {
         $appointment = Appointment::findOrFail($id);
 
-        // UPDATED: Save the ID of the admin who clicked approve
         $appointment->status = 'approved';
         $appointment->approved_by = auth()->id();
         $appointment->save();
 
-        // Custom message for Approval
         $dateFormatted = \Carbon\Carbon::parse($appointment->date)->format('d M Y');
         $message = "Hello {$appointment->user->name}! Great news, your appointment for {$appointment->purpose} on {$dateFormatted} has been APPROVED. See you then!";
 
@@ -205,21 +190,17 @@ class AdminController extends Controller
 
     public function reject(Request $request, $id)
     {
-        // 1. Find the appointment
         $appointment = Appointment::findOrFail($id);
 
-        // 2. Capture the rejection reason from the Modal
         $reason = $request->input('reason');
         if ($reason === 'Other') {
             $reason = $request->input('other_reason');
         }
 
-        // 3. Update the database
         $appointment->status = 'rejected';
-        $appointment->reject_reason = $reason; // Ensure this column exists in your migration
+        $appointment->reject_reason = $reason; 
         $appointment->save();
 
-        // 4. Prepare the WhatsApp Message
         $dateFormatted = Carbon::parse($appointment->date)->format('d M Y');
         $name = $appointment->user->name ?? 'Customer';
 
@@ -228,7 +209,6 @@ class AdminController extends Controller
             "*Reason:* {$reason}\n\n" .
             "Please contact us if you have any further questions.";
 
-        // 5. Send Notification with Error Handling
         try {
             $this->sendWhatsAppNotification($appointment->user->phone, $message);
         } catch (\Exception $e) {
@@ -250,14 +230,12 @@ class AdminController extends Controller
             'reschedule_reason' => $request->reason
         ]);
 
-        // Custom message for Reschedule Request
         $message = "Hello {$appointment->user->name}. We need to RESCHEDULE your appointment for {$appointment->purpose}. Reason: {$request->reason}. Please log into the PPD Kluang Appointment System to select a new date.";
 
         $this->sendWhatsAppNotification($appointment->user->phone, $message);
 
         return redirect()->back()->with('success', 'Reschedule requested and WhatsApp notification sent!');
     }
-
 
     // ==========================================
     // PRIVATE HELPER METHOD FOR WHATSAPP
@@ -273,7 +251,6 @@ class AdminController extends Controller
 
             $userPhone = trim($phone);
 
-            // Force the +60 format for Malaysian numbers
             if (str_starts_with($userPhone, '0')) {
                 $userPhone = '+60' . substr($userPhone, 1);
             }
@@ -293,10 +270,8 @@ class AdminController extends Controller
     {
         $date = $request->query('date');
 
-        // Get all times already booked for this date
-        // Adjust 'time' to match your column name in the database
         $bookedTimes = Appointment::where('date', $date)
-            ->whereIn('status', ['pending', 'approved']) // Don't block if 'rejected' or 'cancelled'
+            ->whereIn('status', ['pending', 'approved']) 
             ->pluck('time')
             ->toArray();
 
