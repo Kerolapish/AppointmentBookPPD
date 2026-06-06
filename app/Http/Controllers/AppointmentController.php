@@ -218,7 +218,7 @@ class AppointmentController extends Controller
         $rejected = (clone $historyQuery)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
         // Fixed compact variables mapping to match view injection signature perfectly
-        return view('admin.requests', compact('pending', 'confirmed', 'rejected'));
+        return view('Admin.requests', compact('pending', 'confirmed', 'rejected'));
     }
 
     // 6. Admin Action: Approve Request
