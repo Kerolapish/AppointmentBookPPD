@@ -20,7 +20,13 @@
             </div>
         @endif
 
-        <form action="{{ route('super_admin.availability.store') }}" method="POST" class="space-y-4">
+        @php
+            // Dynamically detect which route name to safely target based on the current URI
+            $isSuperAdmin = request()->is('super-admin/*');
+            $storeRoute = $isSuperAdmin ? route('super_admin.availability.store') : route('admin.availability.store');
+        @endphp
+
+        <form action="{{ $storeRoute }}" method="POST" class="space-y-4">
             @csrf
 
             <div class="w-full">
@@ -91,24 +97,32 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse ($blockedDates as $blocked)
+                    @php 
+                        // Safe collection fallback assignment to adapt to whichever variable name your controller indices provide
+                        $records = $blockedDates ?? $offDays ?? []; 
+                    @endphp
+                    @forelse ($records as $blocked)
+                        @php $targetDate = $blocked->off_date ?? $blocked->date ?? null; @endphp
                         <tr class="hover:bg-red-50/30 transition-colors">
                             <td class="px-6 py-4 font-medium text-gray-900">
-                                {{ \Carbon\Carbon::parse($blocked->off_date)->format('d M Y') }}
+                                {{ $targetDate ? \Carbon\Carbon::parse($targetDate)->format('d M Y') : 'N/A' }}
                             </td>
                             <td class="px-6 py-4 text-gray-600">
-                                {{ \Carbon\Carbon::parse($blocked->off_date)->format('l') }}
+                                {{ $targetDate ? \Carbon\Carbon::parse($targetDate)->format('l') : 'N/A' }}
                             </td>
                             <td class="px-6 py-4 text-gray-600">
                                 {{ $blocked->reason ?? 'Not specified' }}
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <form action="{{ route('super_admin.availability.destroy', $blocked->id) }}" method="POST"
-                                    onsubmit="return confirm('Are you sure you want to unblock this date?');">
+                                @php
+                                    $destroyRoute = $isSuperAdmin 
+                                        ? route('super_admin.availability.destroy', $blocked->id) 
+                                        : route('admin.availability.delete', $blocked->id);
+                                @endphp
+                                <form action="{{ $destroyRoute }}" method="POST" onsubmit="return confirm('Are you sure you want to unblock this date?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
-                                        class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition text-sm font-medium border border-transparent hover:border-red-100">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition text-sm font-medium border border-transparent hover:border-red-100">
                                         <i class="fa-solid fa-unlock mr-1"></i> Unblock
                                     </button>
                                 </form>
@@ -125,9 +139,9 @@
             </table>
         </div>
 
-        @if (method_exists($blockedDates, 'hasPages') && $blockedDates->hasPages())
+        @if (isset($records) && method_exists($records, 'hasPages') && $records->hasPages())
             <div class="p-4 border-t border-gray-200 bg-gray-50">
-                {{ $blockedDates->links() }}
+                {{ $records->links() }}
             </div>
         @endif
     </div>
