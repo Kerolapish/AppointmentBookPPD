@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\AppointmentApprovedMail;
 use Carbon\Carbon;
 
 class AppointmentController extends Controller
@@ -223,16 +224,21 @@ class AppointmentController extends Controller
 
     // 6. Admin Action: Approve Request
     public function approve($id)
-    {
-        $appointment = Appointment::findOrFail($id);
-        $appointment->status = 'confirmed'; // Syncs with layout queries
-        $appointment->save();
+{
+    // 1. Find the appointment application
+    $appointment = Appointment::with('user')->findOrFail($id);
+    
+    // 2. Change status to approved/confirmed
+    $appointment->status = 'approved'; // Adjust status string to match your database convention
+    $appointment->save();
 
-        $msg = "STATUS UPDATE: Your PPD Kluang appointment status has been updated to [APPROVED].";
-        $this->sendNotifications($appointment, $msg);
-
-        return redirect()->back()->with('success', 'Appointment confirmed successfully.');
+    // 3. Trigger email notification to the applicant
+    if ($appointment->user && $appointment->user->email) {
+        Mail::to($appointment->user->email)->send(new AppointmentApprovedMail($appointment));
     }
+
+    return redirect()->back()->with('success', 'Appointment approved and email notification sent successfully!');
+}
 
     // 7. Admin Action: Reject Request with Dropdown Reason processing
     public function reject(Request $request, $id)
