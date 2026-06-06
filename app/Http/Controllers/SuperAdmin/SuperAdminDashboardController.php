@@ -86,11 +86,16 @@ class SuperAdminDashboardController extends Controller
     // ==========================================
 
     // 1. Show the page
+    // ==========================================
+    // AVAILABILITY & BLOCKED DATES (FIXED)
+    // ==========================================
+
+    // 1. Show the page
     public function availability()
     {
-        // Fetch upcoming blocked dates
-        $blockedDates = BlockedDate::where('date', '>=', now()->toDateString())
-            ->orderBy('date', 'asc')
+        // Use OffDay instead of BlockedDate, and 'off_date' instead of 'date'
+        $blockedDates = \App\Models\OffDay::where('off_date', '>=', now()->toDateString())
+            ->orderBy('off_date', 'asc')
             ->paginate(15);
 
         return view('SuperAdmin.availability', compact('blockedDates'));
@@ -100,14 +105,14 @@ class SuperAdminDashboardController extends Controller
     public function storeBlockedDate(Request $request)
     {
         $request->validate([
-            'date' => 'required|date|unique:blocked_dates,date',
+            'date' => 'required|date|unique:off_days,off_date', // Checked against off_days table
             'reason' => 'nullable|string|max:255',
         ], [
             'date.unique' => 'This date is already blocked.',
         ]);
 
-        BlockedDate::create([
-            'date' => $request->date,
+        \App\Models\OffDay::create([
+            'off_date' => $request->date, // Maps correctly to database schema
             'reason' => $request->reason,
         ]);
 
@@ -117,7 +122,7 @@ class SuperAdminDashboardController extends Controller
     // 3. Delete a blocked date
     public function destroyBlockedDate($id)
     {
-        BlockedDate::findOrFail($id)->delete();
+        \App\Models\OffDay::findOrFail($id)->delete();
         return redirect()->route('super_admin.availability')->with('success', 'Blocked date removed!');
     }
 
