@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OffDay;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class AdminAvailabilityController extends Controller
 {
@@ -15,29 +16,39 @@ class AdminAvailabilityController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validate start and end dates
+        // 1. Validate inputs based on mode selection
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'nullable|string|max:255'
+            'mode'       => 'required|in:single,range',
+            'off_date'   => 'required_if:mode,single|date|nullable',
+            'start_date' => 'required_if:mode,range|date|nullable',
+            'end_date'   => 'required_if:mode,range|date|after_or_equal:start_date|nullable',
+            'reason'     => 'nullable|string|max:255'
         ]);
 
-        // 2. Parse dates using Carbon
-        $startDate = \Carbon\Carbon::parse($request->start_date);
-        $endDate = \Carbon\Carbon::parse($request->end_date);
-        $reason = $request->reason;
+        $reason = $request->input('reason', 'Admin Blocked Day');
 
-        // 3. Loop through every day from start to end
-        for ($date = $startDate; $date->lte($endDate); $date->addDay()) {
-
-            // firstOrCreate prevents errors if the date is already blocked
-            \App\Models\OffDay::firstOrCreate(
-                ['off_date' => $date->format('Y-m-d')],
+        // 2. Handle Single Date Selection
+        if ($request->mode === 'single') {
+            OffDay::firstOrCreate(
+                ['off_date' => Carbon::parse($request->off_date)->format('Y-m-d')],
                 ['reason' => $reason]
             );
+        } 
+        // 3. Handle Multiple Date Range Selection
+        elseif ($request->mode === 'range') {
+            $startDate = Carbon::parse($request->start_date);
+            $endDate = Carbon::parse($request->end_date);
+
+            // Clone $startDate instance to avoid modifying original instance inside condition evaluation
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                OffDay::firstOrCreate(
+                    ['off_date' => $date->format('Y-m-d')],
+                    ['reason' => $reason]
+                );
+            }
         }
 
-        return back()->with('success', 'Date range blocked successfully.');
+        return back()->with('success', 'Blocked dates updated successfully.');
     }
 
     public function destroy($id)
