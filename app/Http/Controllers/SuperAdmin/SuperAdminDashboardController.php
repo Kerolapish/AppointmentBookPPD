@@ -102,21 +102,47 @@ class SuperAdminDashboardController extends Controller
     }
 
     // 2. Save a new blocked date
+    // 2. Save a new blocked date (Single or Date Range)
     public function storeBlockedDate(Request $request)
     {
+        // Validate inputs based on mode selection
         $request->validate([
-            'date' => 'required|date|unique:off_days,off_date', // Checked against off_days table
-            'reason' => 'nullable|string|max:255',
-        ], [
-            'date.unique' => 'This date is already blocked.',
+            'mode'       => 'required|in:single,range',
+            'date'       => 'required_if:mode,single|date|nullable',
+            'start_date' => 'required_if:mode,range|date|nullable',
+            'end_date'   => 'required_if:mode,range|date|after_or_equal:start_date|nullable',
+            'reason'     => 'nullable|string|max:255',
         ]);
 
-        \App\Models\OffDay::create([
-            'off_date' => $request->date, // Maps correctly to database schema
-            'reason' => $request->reason,
-        ]);
+        $reason = $request->input('reason', 'Blocked Day');
 
-        return redirect()->route('super_admin.availability')->with('success', 'Date blocked successfully!');
+        // Handle Single Date Selection
+        if ($request->mode === 'single') {
+            $request->validate([
+                'date' => 'unique:off_days,off_date'
+            ], [
+                'date.unique' => 'This date is already blocked.'
+            ]);
+
+            \App\Models\OffDay::firstOrCreate(
+                ['off_date' => \Carbon\Carbon::parse($request->date)->format('Y-m-d')],
+                ['reason' => $reason]
+            );
+        } 
+        // Handle Multiple Date Range Selection
+        elseif ($request->mode === 'range') {
+            $startDate = \Carbon\Carbon::parse($request->start_date);
+            $endDate = \Carbon\Carbon::parse($request->end_date);
+
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                \App\Models\OffDay::firstOrCreate(
+                    ['off_date' => $date->format('Y-m-d')],
+                    ['reason' => $reason]
+                );
+            }
+        }
+
+        return redirect()->route('super_admin.availability')->with('success', 'Blocked dates updated successfully!');
     }
 
     // 3. Delete a blocked date
