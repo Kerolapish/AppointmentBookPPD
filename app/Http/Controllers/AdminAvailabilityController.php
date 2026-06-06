@@ -12,7 +12,7 @@ class AdminAvailabilityController extends Controller
     {
         // Fetch and explicitly name it $offDays to match your view loop
         $offDays = OffDay::orderBy('off_date', 'asc')->paginate(10);
-        return view('admin.availability', compact('offDays'));
+        return view('Admin.availability', compact('offDays'));
     }
 
     public function store(Request $request)
