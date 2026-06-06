@@ -214,11 +214,11 @@ class AppointmentController extends Controller
         }
 
         // 3. Unified formatting status values to match what is kept inside your database
-        $confirmed = (clone $historyQuery)->whereIn('status', ['confirmed', 'approved'])->orderBy('date', 'asc')->get();
+        $approved = (clone $historyQuery)->whereIn('status', ['confirmed', 'approved'])->orderBy('date', 'asc')->get();
         $rejected = (clone $historyQuery)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
         // Fixed compact variables mapping to match view injection signature perfectly
-        return view('Admin.requests', compact('pending', 'confirmed', 'rejected'));
+        return view('Admin.requests', compact('pending', 'approved', 'rejected'));
     }
 
     // 6. Admin Action: Approve Request
