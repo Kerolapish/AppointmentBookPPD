@@ -27,7 +27,7 @@
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
 
-                    <form method="GET" action="{{ route('admin.requests') }}"
+                    <form id="filterForm" method="GET" action="{{ route('admin.requests') }}"
                         class="w-full flex flex-col md:flex-row gap-4">
 
                         <div class="flex-1">
@@ -60,7 +60,7 @@
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                                <select name="filter"
+                                <select name="filter" onchange="document.getElementById('filterForm').submit();"
                                     class="pl-10 w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-sm border shadow-sm cursor-pointer">
                                     <option value="">All Time</option>
                                     <option value="today" {{ request('filter') == 'today' ? 'selected' : '' }}>Today
@@ -73,19 +73,14 @@
                             </div>
                         </div>
 
-                        <div class="flex items-end gap-2">
-                            <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-5 rounded-md shadow-sm text-sm transition-colors duration-200 flex items-center gap-2">
-                                <span>Filter</span>
-                            </button>
-
-                            @if (request()->has('search') || request()->has('filter'))
+                        @if (request()->has('search') || request()->has('filter'))
+                            <div class="flex items-end">
                                 <a href="{{ route('admin.requests') }}"
-                                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-4 rounded-md shadow-sm text-sm transition-colors duration-200">
+                                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-4 rounded-md shadow-sm text-sm transition-colors duration-200 h-[42px] flex items-center">
                                     Clear
                                 </a>
-                            @endif
-                        </div>
+                            </div>
+                        @endif
                     </form>
                 </div>
             </div>
@@ -132,12 +127,6 @@
                                                     Confirm
                                                 </button>
                                             </form>
-
-                                            <button type="button"
-                                                onclick="openRescheduleModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}')"
-                                                class="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-yellow-100 transition border border-yellow-200">
-                                                Reschedule
-                                            </button>
 
                                             <button type="button"
                                                 onclick="openRejectModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}', '{{ $apt->ips ?? '' }}', '{{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}', '{{ $apt->user->email }}')"
@@ -190,10 +179,18 @@
                                 <td class="px-6 py-4 text-gray-600">{{ $apt->user->phone ?? '-' }}</td>
                                 <td class="px-6 py-4 text-gray-600">{{ $apt->user->email }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <span
-                                        class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Confirmed
-                                    </span>
+                                    <div class="flex items-center justify-center gap-3">
+                                        <span
+                                            class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Confirmed
+                                        </span>
+
+                                        <button type="button"
+                                            onclick="openRescheduleModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}')"
+                                            class="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-semibold hover:bg-yellow-100 transition border border-yellow-200">
+                                            Reschedule
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -355,7 +352,7 @@
 
                 <form id="rescheduleForm" method="POST" action="">
                     @csrf
-                    @method('PATCH') {{-- Added PATCH support for safe updating --}}
+                    @method('PATCH')
 
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 space-y-4">
                         <p class="text-sm text-gray-600 mb-2">
