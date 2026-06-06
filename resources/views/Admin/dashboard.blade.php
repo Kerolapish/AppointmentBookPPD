@@ -59,12 +59,10 @@
                     <label for="status" class="text-sm font-medium text-gray-600">Status:</label>
                     <select name="status" id="status" onchange="document.getElementById('statusFilterForm').submit();"
                         class="rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm text-gray-700 bg-white px-3 py-1.5 border">
-                        <option value="">All Statuses</option>
-                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
-                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>✅ Confirmed
-                        </option>
-                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>❌ Rejected
-                        </option>
+                        <option value="" {{ $statusFilter === '' ? 'selected' : '' }}>All Statuses</option>
+                        <option value="pending" {{ $statusFilter === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="approved" {{ $statusFilter === 'approved' ? 'selected' : '' }}>Confirmed</option>
+                        <option value="rejected" {{ $statusFilter === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
                 </form>
             </div>

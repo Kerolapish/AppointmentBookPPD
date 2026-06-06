@@ -29,9 +29,17 @@ class AdminController extends Controller
         // Start base query for the interactive recent appointments table
         $query = Appointment::with('user');
 
-        // DROPDOWN FILTER LOGIC: Apply filter if selected from dropdown
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        // NEW LOGIC: Default to 'pending' if the user hasn't chosen a filter yet
+        // If they click 'All Statuses' (which sends an empty string), it will skip this and show all.
+        if (!$request->has('status')) {
+            $statusFilter = 'pending';
+        } else {
+            $statusFilter = $request->status;
+        }
+
+        // Apply filter to query if $statusFilter is set (e.g., pending, approved, rejected)
+        if (!empty($statusFilter)) {
+            $query->where('status', $statusFilter);
         }
 
         // Get recent appointments (paginated, 5 per page)
@@ -41,7 +49,8 @@ class AdminController extends Controller
             'pendingCount',
             'approvedCount',
             'rejectedCount',
-            'appointments'
+            'appointments',
+            'statusFilter' // Passing this variable down to help the dropdown look correct
         ));
     }
 
