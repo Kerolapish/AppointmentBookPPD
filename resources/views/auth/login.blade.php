@@ -6,14 +6,10 @@
 
             <div class="header-gradient text-white text-center py-8 px-6">
 
-                <div class="flex items-start justify-center flex-row gap-5 mb-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <img src="{{ asset('images/logoPPD.png') }}" alt="PPD Logo" class="h-16 w-auto object-contain">
 
-                    <img src="{{ asset('images/logoppd.png') }}" alt="PPD Logo"
-                        class="h-20 w-auto object-contain drop-shadow-md mt-2">
-
-                    <img src="{{ asset('images/logokpm.png') }}" alt="Second Logo"
-                        class="h-24 w-auto object-contain drop-shadow-md">
-
+                    <img src="{{ asset('images/logoKPM.PNG') }}" alt="Second Logo" class="h-16 w-auto object-contain">
                 </div>
 
                 <h2 class="text-xl font-bold mb-1">Appointment Booking System</h2>
