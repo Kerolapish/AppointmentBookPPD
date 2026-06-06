@@ -17,7 +17,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-// APPOINTMENT ROUTES
+// APPOINTMENT ROUTES (USER SIDE)
 Route::middleware(['auth'])->group(function () {
     Route::get('/book-appointment', [AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/book-appointment', [AppointmentController::class, 'store'])->name('appointments.store');
@@ -41,13 +41,17 @@ Route::middleware('auth')->group(function () {
 // ADMIN ROUTES
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-    Route::get('/requests', [AdminController::class, 'appointments'])->name('admin.requests');
-    Route::patch('/approve/{id}', [AdminController::class, 'approve'])->name('admin.approve');
-    Route::post('/appointment/{id}/request-reschedule', [AdminController::class, 'requestReschedule'])->name('admin.appointment.reschedule');
-    Route::patch('/appointment/{id}/reject', [AdminController::class, 'reject'])->name('admin.appointment.reject');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     Route::get('/report/pdf', [AdminController::class, 'downloadReportPdf'])->name('admin.report.pdf');
+    
+    // --- UPDATED: Appointment Actions Routed to AppointmentController ---
+    Route::get('/requests', [AppointmentController::class, 'appointments'])->name('admin.requests');
+    Route::patch('/approve/{id}', [AppointmentController::class, 'approve'])->name('admin.approve');
+    Route::patch('/appointment/{id}/reject', [AppointmentController::class, 'reject'])->name('admin.appointment.reject');
+    Route::patch('/appointment/{id}/request-reschedule', [AppointmentController::class, 'reschedule'])->name('admin.appointment.reschedule');
+    
+    // --- Admin Availability Block ---
     Route::get('/availability', [AdminAvailabilityController::class, 'index'])->name('admin.availability');
     Route::post('/availability', [AdminAvailabilityController::class, 'store'])->name('admin.availability.store');
     Route::delete('/availability/{id}', [AdminAvailabilityController::class, 'destroy'])->name('admin.availability.delete');
@@ -55,16 +59,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
 // SUPER ADMIN SECURE ROUTES
 Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_admin.')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'index'])->name('dashboard');
-    Route::delete('/appointments/{id}', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'destroy'])->name('appointments.destroy');
-    Route::get('/users', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'users'])->name('users');
-    Route::get('/users', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'users'])->name('users');
-    Route::put('/users/{id}', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'updateUser'])->name('users.update');
-    // NEW: Availability & Schedule Settings
-    Route::get('/availability', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'availability'])->name('availability');
-    Route::post('/availability', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'storeBlockedDate'])->name('availability.store');
-    Route::delete('/availability/{id}', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'destroyBlockedDate'])->name('availability.destroy');
-    Route::put('/appointments/{id}/reschedule', [App\Http\Controllers\SuperAdmin\SuperAdminDashboardController::class, 'reschedule'])->name('appointments.reschedule');
+    Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+    Route::delete('/appointments/{id}', [SuperAdminDashboardController::class, 'destroy'])->name('appointments.destroy');
+    Route::get('/users', [SuperAdminDashboardController::class, 'users'])->name('users');
+    Route::put('/users/{id}', [SuperAdminDashboardController::class, 'updateUser'])->name('users.update');
+    
+    // Availability & Schedule Settings
+    Route::get('/availability', [SuperAdminDashboardController::class, 'availability'])->name('availability');
+    Route::post('/availability', [SuperAdminDashboardController::class, 'storeBlockedDate'])->name('availability.store');
+    Route::delete('/availability/{id}', [SuperAdminDashboardController::class, 'destroyBlockedDate'])->name('availability.destroy');
+    Route::put('/appointments/{id}/reschedule', [SuperAdminDashboardController::class, 'reschedule'])->name('appointments.reschedule');
     Route::get('/reports', [SuperAdminDashboardController::class, 'reports'])->name('reports');
     Route::get('/appointments/export', [SuperAdminDashboardController::class, 'exportAppointments'])->name('appointments.export');
 });

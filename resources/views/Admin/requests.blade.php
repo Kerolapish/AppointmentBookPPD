@@ -89,6 +89,7 @@
                     </form>
                 </div>
             </div>
+
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
                 <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
                 <h2 class="text-lg font-bold text-gray-900">Incoming Requests</h2>
@@ -139,13 +140,7 @@
                                             </button>
 
                                             <button type="button"
-                                                onclick="openRejectModal(
-                                                    '{{ $apt->id }}', 
-                                                    '{{ $apt->user->name ?? 'Unknown' }}', 
-                                                    '{{ $apt->ips }}', 
-                                                    '{{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}', 
-                                                    '{{ $apt->user->email }}'
-                                                )"
+                                                onclick="openRejectModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}', '{{ $apt->ips ?? '' }}', '{{ \Carbon\Carbon::parse($apt->date)->format('d M Y') }}', '{{ $apt->user->email }}')"
                                                 class="px-4 py-2 bg-red-50 text-red-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-100 transition border border-red-200">
                                                 Reject
                                             </button>
@@ -258,21 +253,18 @@
         </div>
     </div>
 
+    {{-- Reject Modal --}}
     <div id="rejectModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
                 onclick="closeRejectModal()"></div>
-
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <div
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-
                 <div class="bg-gray-100 px-4 py-3 border-b border-gray-200">
-                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                        REJECT CONFIRMATION
-                    </h3>
+                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">REJECT CONFIRMATION</h3>
                 </div>
 
                 <form id="rejectForm" method="POST" action="">
@@ -280,7 +272,6 @@
                     @method('PATCH')
 
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 space-y-4">
-
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Name</label>
                             <input type="text" id="modal_name"
@@ -331,7 +322,6 @@
                                 class="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md border p-2"
                                 placeholder="Type the specific reason here..."></textarea>
                         </div>
-
                     </div>
 
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -348,24 +338,24 @@
             </div>
         </div>
     </div>
+
+    {{-- Reschedule Modal --}}
     <div id="rescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
         role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
                 onclick="closeRescheduleModal()"></div>
-
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <div
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
                 <div class="bg-yellow-50 px-4 py-3 border-b border-yellow-200">
-                    <h3 class="text-lg leading-6 font-bold text-yellow-900" id="modal-title">
-                        REQUEST RESCHEDULE
-                    </h3>
+                    <h3 class="text-lg leading-6 font-bold text-yellow-900" id="modal-title">REQUEST RESCHEDULE</h3>
                 </div>
 
                 <form id="rescheduleForm" method="POST" action="">
                     @csrf
+                    @method('PATCH') {{-- Added PATCH support for safe updating --}}
 
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 space-y-4">
                         <p class="text-sm text-gray-600 mb-2">
@@ -396,6 +386,7 @@
             </div>
         </div>
     </div>
+
     <script>
         function openRejectModal(id, name, ips, date, email) {
             document.getElementById('modal_name').value = name;
@@ -404,8 +395,6 @@
             document.getElementById('modal_email').value = email;
 
             let form = document.getElementById('rejectForm');
-
-            // FIXED: Use the route name. We replace the placeholder :id with the real ID.
             let url = "{{ route('admin.appointment.reject', ':id') }}";
             form.action = url.replace(':id', id);
 
@@ -432,32 +421,10 @@
             }
         }
 
-        function closeRejectModal() {
-            document.getElementById('rejectModal').classList.add('hidden');
-            // Reset form
-            document.getElementById('rejectForm').reset();
-            document.getElementById('other_reason_container').classList.add('hidden');
-        }
-
-        function toggleOtherField() {
-            const select = document.getElementById('reject_reason');
-            const otherContainer = document.getElementById('other_reason_container');
-
-            if (select.value === 'Other') {
-                otherContainer.classList.remove('hidden');
-                otherContainer.querySelector('textarea').required = true;
-            } else {
-                otherContainer.classList.add('hidden');
-                otherContainer.querySelector('textarea').required = false;
-            }
-        }
-
         function openRescheduleModal(id, name) {
             document.getElementById('reschedule_modal_name').innerText = name;
 
             let form = document.getElementById('rescheduleForm');
-
-            // FIXED: Use the route name.
             let url = "{{ route('admin.appointment.reschedule', ':id') }}";
             form.action = url.replace(':id', id);
 
@@ -465,7 +432,6 @@
         }
 
         function closeRescheduleModal() {
-            // Hide the modal and reset the textarea
             document.getElementById('rescheduleModal').classList.add('hidden');
             document.getElementById('rescheduleForm').reset();
         }
