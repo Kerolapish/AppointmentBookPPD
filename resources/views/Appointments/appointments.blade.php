@@ -109,6 +109,8 @@
                     <li>Please arrive 5 minutes before your scheduled time.</li>
                     <li>Bring all necessary documents related to your appointment.</li>
                     <li>To reschedule or cancel, please do so at least 24 hours in advance.</li>
+                    <li class="text-blue-700 font-medium">New slots open up automatically every day for a rolling 30-day
+                        window.</li>
                 </ul>
             </div>
 
@@ -234,11 +236,11 @@
 
             if (select.value === "Other") {
                 otherDiv.classList.remove("hidden");
-                otherInput.setAttribute("required", "required"); // Make it required if shown
+                otherInput.setAttribute("required", "required");
             } else {
                 otherDiv.classList.add("hidden");
-                otherInput.removeAttribute("required"); // Remove required if hidden
-                otherInput.value = ""; // Clear input if user switches back
+                otherInput.removeAttribute("required");
+                otherInput.value = "";
             }
         }
     </script>
@@ -247,7 +249,7 @@
         // Get all arrays from your controller
         const blockedDates = @json($blockedDates ?? []);
         const fullyBookedDates = @json($fullyBookedDates ?? []);
-        const userBookedDates = @json($userBookedDates ?? []); // <-- New!
+        const userBookedDates = @json($userBookedDates ?? []);
 
         // Combine ALL of them so Flatpickr disables them
         const allUnavailableDates = [...blockedDates, ...fullyBookedDates, ...userBookedDates];
@@ -256,8 +258,11 @@
         flatpickr("#dateInput", {
             inline: true,
             minDate: "today",
+            maxDate: new Date().fp_incr(
+            30), // 👈 ROLLING WINDOW: Lock calendar selections to a maximum of 30 days ahead from today
             disable: [
                 function(date) {
+                    // Disable Weekends
                     return (date.getDay() === 0 || date.getDay() === 6);
                 },
                 function(date) {
@@ -274,10 +279,10 @@
                     String(date.getMonth() + 1).padStart(2, '0') + "-" +
                     String(date.getDate()).padStart(2, '0');
 
-                // Apply CSS classes based on the reason
+                // Apply CSS classes based on status
                 if (userBookedDates.includes(formattedDate)) {
                     dayElem.classList.add("is-user-booked");
-                    dayElem.title = "You already have an appointment on this date!"; // Tooltip!
+                    dayElem.title = "You already have an appointment on this date!";
                 } else if (blockedDates.includes(formattedDate)) {
                     dayElem.classList.add("is-blocked");
                     dayElem.title = "Office closed";
@@ -310,7 +315,6 @@
         async function updateTimeSlots() {
             const dateInput = document.getElementById('dateInput');
             const timeSelect = document.getElementById('timeSelect');
-            const dateError = document.getElementById('dateError');
 
             timeSelect.innerHTML = '<option value="">Loading availability...</option>';
             timeSelect.disabled = true;
@@ -345,7 +349,7 @@
                     if (isBooked) {
                         option.disabled = true;
                         option.text += ' (Fully Booked)';
-                        option.classList.add('text-red-400'); // Optional: make it look red
+                        option.classList.add('text-red-400');
                     }
 
                     timeSelect.appendChild(option);
