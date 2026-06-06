@@ -4,16 +4,17 @@
     <div class="auth-wrapper">
         <div class="auth-card">
 
-            <div class="header-gradient text-white text-center py-8 px-6">
+            <div class="flex items-center justify-center gap-6 mb-6">
 
-                <div class="flex items-center gap-4 mb-4">
-                    <img src="{{ asset('images/logoPPD.png') }}" alt="PPD Logo" class="h-16 w-auto object-contain">
-
-                    <img src="{{ asset('images/logoKPM.PNG') }}" alt="Second Logo" class="h-16 w-auto object-contain">
+                <div class="flex items-center justify-center">
+                    <img src="{{ asset('images/logoPPD.png') }}" alt="PPD Logo"
+                        class="h-20 w-auto object-contain max-w-[100px]">
                 </div>
 
-                <h2 class="text-xl font-bold mb-1">Appointment Booking System</h2>
-                <p class="text-blue-100 text-xs uppercase tracking-wider font-semibold">Pejabat Pendidikan Daerah Kluang</p>
+                <div class="flex items-center justify-center">
+                    <img src="{{ asset('images/logoKPM.PNG') }}" alt="Second Logo"
+                        class="h-20 w-auto object-contain max-w-[120px]">
+                </div>
 
             </div>
 

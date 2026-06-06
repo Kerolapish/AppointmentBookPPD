@@ -30,7 +30,7 @@
 
     {{-- Watermark Logo Background --}}
     <div class="fixed inset-0 pointer-events-none opacity-[0.05] bg-center bg-no-repeat z-0"
-        style="background-image: url('{{ asset('images/logoppd.png') }}'); background-size: 500px;">
+        style="background-image: url('{{ asset('images/logoPPD.png') }}'); background-size: 500px;">
     </div>
 
     <div class="min-h-screen flex flex-col relative z-10">
@@ -43,7 +43,7 @@
                     <div class="flex items-center gap-8">
                         {{-- Brand Section --}}
                         <div class="flex-shrink-0 flex items-center gap-3">
-                            <img src="{{ asset('images/logokpm.png') }}" alt="KPM Logo"
+                            <img src="{{ asset('images/logoKPM.PNG') }}" alt="KPM Logo"
                                 class="h-14 w-auto object-contain">
                             <div class="leading-tight border-l-2 border-gray-200 pl-3">
                                 <h1 class="font-bold text-gray-900 text-xl">PPD Kluang</h1>
