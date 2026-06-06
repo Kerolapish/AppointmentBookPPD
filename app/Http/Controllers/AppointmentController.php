@@ -168,7 +168,7 @@ class AppointmentController extends Controller
         }
 
         $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
-        return view('admin.appointments.index', compact('appointments', 'status'));
+        return view('Admin.appointments.index', compact('appointments', 'status'));
     }
 
     // 4. Cancel Appointment (User Side)
@@ -359,11 +359,13 @@ class AppointmentController extends Controller
     }
 
     // 11. Notification Dispatched Manager
+    // 11. Notification Dispatched Manager
     private function sendNotifications($appointment, $messageBody)
     {
         // Email Dispatch Channel
         try {
             if ($appointment->user && $appointment->user->email) {
+                // Pass BOTH arguments down safely to match our new constructor
                 Mail::to($appointment->user->email)->send(new \App\Mail\AppointmentStatusUpdated($appointment, $messageBody));
             }
         } catch (\Exception $e) {
@@ -372,12 +374,27 @@ class AppointmentController extends Controller
 
         // WhatsApp Gateway Channel
         try {
-            if ($appointment->user && isset($appointment->user->phone_number)) {
+            // Updated property pointers from phone_number to phone to match your structural layout
+            $recipientPhone = $appointment->phone ?? ($appointment->user->phone ?? null);
+
+            if ($recipientPhone) {
+                // Cleans up any formatting spaces out of user inputs cleanly
+                $cleanPhone = preg_replace('/[^0-9]/', '', $recipientPhone);
+
+                // Ensure international country code prefixes match your provider gateway requirements (e.g., adding '60' for Malaysia if missing)
+                if (str_starts_with($cleanPhone, '0')) {
+                    $cleanPhone = '60' . substr($cleanPhone, 1);
+                }
+
                 Http::timeout(5)->post('https://api.yourwhatsappgateway.com/send', [
-                    'api_key' => config('services.whatsapp.key'),
-                    'recipient' => $appointment->user->phone_number,
-                    'message' => $messageBody
+                    'api_key'   => config('services.whatsapp.key'),
+                    'recipient' => $cleanPhone,
+                    'message'   => $messageBody
                 ]);
+
+                \Log::info("WhatsApp dispatch triggered successfully for: " . $cleanPhone);
+            } else {
+                \Log::warning("WhatsApp skipped: No valid phone property found on Appointment ID " . $appointment->id);
             }
         } catch (\Exception $e) {
             \Log::error("Production WhatsApp Gateway Failure: " . $e->getMessage());
