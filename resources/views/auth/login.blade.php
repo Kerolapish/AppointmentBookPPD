@@ -4,16 +4,17 @@
     <div class="auth-wrapper">
         <div class="auth-card">
 
-            <div class="flex items-center justify-center gap-6 mb-6">
+            <div
+                class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-t-xl flex items-center justify-center gap-8 shadow-inner">
 
-                <div class="flex items-center justify-center">
+                <div class="flex items-center justify-center h-20">
                     <img src="{{ asset('images/logoPPD.png') }}" alt="PPD Logo"
-                        class="h-20 w-auto object-contain max-w-[100px]">
+                        class="h-20 w-auto object-contain drop-shadow-md">
                 </div>
 
-                <div class="flex items-center justify-center">
+                <div class="flex items-center justify-center h-20">
                     <img src="{{ asset('images/logoKPM.PNG') }}" alt="Second Logo"
-                        class="h-20 w-auto object-contain max-w-[120px]">
+                        class="h-20 w-auto object-contain drop-shadow-md">
                 </div>
 
             </div>
