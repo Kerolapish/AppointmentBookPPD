@@ -68,15 +68,17 @@
             <div class="space-y-4">
                 @forelse($appointments as $appointment)
                     @php
-                    $appointmentDate = \Carbon\Carbon::parse($appointment->date);
-                    @php
+                        // TYPO FIXED: Properly closed the @php block using
+                    @endphp
+                    $loopDate = $appointment->date ? \Carbon\Carbon::parse($appointment->date) : \Carbon\Carbon::today();
+                    @endphp
                     <div
                         class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
 
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-blue-50 text-blue-600 rounded-xl flex flex-col items-center justify-center">
-                            <span class="text-xl font-bold leading-none">{{ $appointmentDate->format('d') }}</span>
-                            <span class="text-[10px] font-bold uppercase mt-1">{{ $appointmentDate->format('M') }}</span>
+                            <span class="text-xl font-bold leading-none">{{ $loopDate->format('d') }}</span>
+                            <span class="text-[10px] font-bold uppercase mt-1">{{ $loopDate->format('M') }}</span>
                         </div>
 
                         <div class="flex-1 text-center sm:text-left">
@@ -89,7 +91,7 @@
                                 </span>
                                 <span class="flex items-center justify-center sm:justify-start gap-1">
                                     <i class="fa-regular fa-clock text-gray-400"></i>
-                                    {{ \Carbon\Carbon::parse($appointment->time)->format('h:i A') }}
+                                    {{ $appointment->time ? \Carbon\Carbon::parse($appointment->time)->format('h:i A') : '--:--' }}
                                 </span>
                             </div>
                         </div>
