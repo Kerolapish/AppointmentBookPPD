@@ -21,36 +21,33 @@ class AdminController extends Controller
     // ==========================================
     public function index(Request $request)
     {
-        // Calculate counts for the 3 colored status cards (these remain constant numbers)
-        $pendingCount = Appointment::where('status', 'pending')->count();
+        // 1. Calculate constant metric counts for the top dashboard view cards
+        $pendingCount  = Appointment::where('status', 'pending')->count();
         $approvedCount = Appointment::where('status', 'approved')->count();
         $rejectedCount = Appointment::where('status', 'rejected')->count();
 
-        // Start base query for the interactive recent appointments table
-        $query = Appointment::with('user');
-
-        // NEW LOGIC: Default to 'pending' if the user hasn't chosen a filter yet
-        // If they click 'All Statuses' (which sends an empty string), it will skip this and show all.
-        if (!$request->has('status')) {
+        // 2. Strict white-listed fallback structure: default to 'pending' if value is missing or modified
+        $statusFilter = $request->input('status');
+        if (!in_array($statusFilter, ['pending', 'approved', 'rejected'])) {
             $statusFilter = 'pending';
-        } else {
-            $statusFilter = $request->status;
         }
 
-        // Apply filter to query if $statusFilter is set (e.g., pending, approved, rejected)
-        if (!empty($statusFilter)) {
-            $query->where('status', $statusFilter);
-        }
+        // 3. Pull matching paginated data bundles
+        $appointments = Appointment::with('user')
+            ->where('status', $statusFilter)
+            ->latest()
+            ->paginate(5);
 
-        // Get recent appointments (paginated, 5 per page)
-        $appointments = $query->latest()->paginate(5);
+        // 4. Bind the missing variable path context to block any future 500 error risks
+        $appointmentDate = $request->input('date', \Carbon\Carbon::today()->format('Y-m-d'));
 
         return view('Admin.dashboard', compact(
             'pendingCount',
             'approvedCount',
             'rejectedCount',
             'appointments',
-            'statusFilter' // Passing this variable down to help the dropdown look correct
+            'statusFilter',
+            'appointmentDate'
         ));
     }
 
