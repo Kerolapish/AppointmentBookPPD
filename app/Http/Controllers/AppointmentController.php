@@ -22,10 +22,10 @@ class AppointmentController extends Controller
         $dailyLimit = 5;
         $weeklyLimit = $dailyLimit * 5;
 
-        // 1. Fetch blocked dates (Admin Off Days)
+        // Fetch blocked dates (Admin Off Days)
         $blockedDates = OffDay::pluck('off_date')->toArray();
 
-        // 2. Find dates that are fully booked (5 or more appointments)
+        // Find dates that are fully booked (5 or more appointments)
         $fullyBookedDates = Appointment::select(DB::raw('DATE(date) as appointment_date'))
             ->groupBy('appointment_date')
             ->havingRaw('COUNT(*) >= 5')
@@ -35,7 +35,7 @@ class AppointmentController extends Controller
             })
             ->toArray();
 
-        // 3. Find dates the CURRENT USER has already booked
+        // Find dates the CURRENT USER has already booked
         $userBookedDates = Appointment::where('user_id', Auth::id())
             ->select(DB::raw('DATE(date) as appointment_date'))
             ->pluck('appointment_date')
@@ -66,7 +66,6 @@ class AppointmentController extends Controller
             $weekColor = 'text-green-600';
         }
 
-        // 4. Return the view with ALL arrays
         return view('Appointments.appointments', compact(
             'todayLeft',
             'tomorrowLeft',
@@ -96,7 +95,7 @@ class AppointmentController extends Controller
             return back()->withInput()->withErrors(['date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
         }
 
-        // --- NEW: Strict 5-Slot Daily Limit ---
+        // --- Strict 5-Slot Daily Limit ---
         $dailyCount = Appointment::where('date', $request->date)
             ->whereNotIn('status', ['cancelled', 'rejected'])
             ->count();
@@ -131,13 +130,21 @@ class AppointmentController extends Controller
             'status'   => 'pending',
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Appointment booked successfully!');
+        // Redirecting to the "My Appointments" index route instead of the root dashboard
+        return redirect()->route('my.appointments')->with('success', 'Appointment booked successfully!');
     }
 
+    // 3. View Booking History (FIXED USER SCOPE & VIEW PATH)
     // 3. View History (Enhanced Search & Filter for User Side)
     public function index(Request $request)
     {
         $query = Appointment::query();
+        
+        // CRITICAL SECURITY FIX: If the logged-in person is NOT an admin, only show their own records
+        if (Auth::user()->role !== 'admin') {
+            $query->where('user_id', Auth::id());
+        }
+
         $status = $request->get('status', 'pending');
         $query->where('status', $status);
 
@@ -155,20 +162,20 @@ class AppointmentController extends Controller
                 $q->where('purpose', 'like', "%{$search}%")
                     ->orWhere('ips', 'like', "%{$search}%")
                     ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhereDate('date', 'like', "%{$search}%")
-                    ->orWhereRaw("DAYNAME(date) LIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("DATE_FORMAT(date, '%d %M %Y') LIKE ?", ["%{$search}%"]);
-
-                if (Schema::hasTable('users')) {
-                    $q->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', "%{$search}%");
-                    });
-                }
+                    ->orWhereDate('date', 'like', "%{$search}%");
             });
         }
 
         $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
-        return view('Admin.appointments.index', compact('appointments', 'status'));
+        
+        // DYNAMIC LAYOUT ROUTER: Direct to the correct view depending on who is logged in
+        if (Auth::user()->role === 'admin') {
+            // Checks if you have Admin/requests.blade.php or an admin subfolder template
+            return view('Admin.requests', compact('appointments', 'status'));
+        }
+        
+        // This is for your regular users! Points to: resources/views/Appointments/appointments.blade.php
+        return view('Appointments.appointments', compact('appointments', 'status'));
     }
 
     // 4. Cancel Appointment (User Side)
@@ -186,15 +193,13 @@ class AppointmentController extends Controller
         return back()->with('success', 'Appointment cancelled successfully.');
     }
 
-    // 5. Unified Admin Requests Page Loader Dashboard (Fixes variables & mappings)
+    // 5. Unified Admin Requests Page Loader Dashboard
     public function appointments(Request $request)
     {
-        // 1. ALWAYS get all Pending requests (Unfiltered so you never miss new submissions)
         $pending = Appointment::where('status', 'pending')
             ->orderBy('date', 'asc')
             ->get();
 
-        // 2. Start building query for History tables
         $historyQuery = Appointment::query();
 
         if ($request->filled('search')) {
@@ -215,42 +220,32 @@ class AppointmentController extends Controller
             }
         }
 
-        // 3. Unified formatting status values to match what is kept inside your database
         $approved = (clone $historyQuery)->whereIn('status', ['confirmed', 'approved'])->orderBy('date', 'asc')->get();
         $rejected = (clone $historyQuery)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
-        // Fixed compact variables mapping to match view injection signature perfectly
         return view('Admin.requests', compact('pending', 'approved', 'rejected'));
     }
 
     // 6. Admin Action: Approve Request
-    // 6. Admin Action: Approve Request
     public function approve($id)
     {
-        // 1. Find the appointment application
         $appointment = Appointment::with('user')->findOrFail($id);
-
-        // 2. Change status to approved/confirmed
         $appointment->status = 'approved';
         $appointment->save();
 
-        // 3. Safe Trigger email notification to the applicant
         try {
             if ($appointment->user && $appointment->user->email) {
                 Mail::to($appointment->user->email)->send(new AppointmentApprovedMail($appointment));
             }
         } catch (\Exception $e) {
-            // Logs the exact error trace inside storage/logs/laravel.log
             \Log::error("Mail Delivery Failed during approval: " . $e->getMessage());
-
-            // Redirects safely with a warning flash notice instead of crashing with a 500 page
             return redirect()->back()->with('warning', 'Appointment status updated to Approved, but notification email could not be sent.');
         }
 
         return redirect()->back()->with('success', 'Appointment approved and email notification sent successfully!');
     }
 
-    // 7. Admin Action: Reject Request with Dropdown Reason processing
+    // 7. Admin Action: Reject Request
     public function reject(Request $request, $id)
     {
         $appointment = Appointment::findOrFail($id);
@@ -335,7 +330,7 @@ class AppointmentController extends Controller
 
         $appointment->date = $request->date;
         $appointment->time = $request->time;
-        $appointment->status = 'pending'; // Reset back to admin queue
+        $appointment->status = 'pending'; 
         $appointment->reschedule_reason = null;
         $appointment->save();
 
@@ -358,23 +353,20 @@ class AppointmentController extends Controller
         return response()->json($bookedTimes);
     }
 
-    // 11. Notification Dispatched Manager
-    // 11. Notification Dispatched Manager
+    // 11. Notification Dispatched Manager (SMTP Email Channel ONLY)
     private function sendNotifications($appointment, $messageBody)
     {
-        // Email Dispatch Channel
+        // 1. Email Dispatch Channel
         try {
             if ($appointment->user && $appointment->user->email) {
-                // Pass BOTH arguments down safely to match our new constructor
                 Mail::to($appointment->user->email)->send(new \App\Mail\AppointmentStatusUpdated($appointment, $messageBody));
             }
         } catch (\Exception $e) {
             \Log::error("Production Mail Delivery Failed: " . $e->getMessage());
         }
 
-        // WhatsApp Gateway Channel
+        // 2. WhatsApp Gateway Channel (RESTORED & ACTIVE)
         try {
-            // Updated property pointers from phone_number to phone to match your structural layout
             $recipientPhone = $appointment->phone ?? ($appointment->user->phone ?? null);
 
             if ($recipientPhone) {
