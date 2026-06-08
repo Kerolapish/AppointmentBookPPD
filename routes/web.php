@@ -45,7 +45,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     Route::get('/report/pdf', [AdminController::class, 'downloadReportPdf'])->name('admin.report.pdf');
     
-    // --- UPDATED: Appointment Actions Routed to AppointmentController ---
+    // --- Appointment Actions Routed to AppointmentController ---
     Route::get('/requests', [AppointmentController::class, 'appointments'])->name('admin.requests');
     Route::patch('/approve/{id}', [AppointmentController::class, 'approve'])->name('admin.approve');
     Route::patch('/appointment/{id}/reject', [AppointmentController::class, 'reject'])->name('admin.appointment.reject');
@@ -56,8 +56,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/availability', [AdminAvailabilityController::class, 'store'])->name('admin.availability.store');
     Route::delete('/availability/{id}', [AdminAvailabilityController::class, 'destroy'])->name('admin.availability.delete');
 
-    Route::get('/admin/appointments/active', [AppointmentController::class, 'activeAppointments'])->name('admin.appointments.active');
-    Route::patch('/admin/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('admin.appointments.complete');
+    // 🔹 FIXED: Removed the duplicate "/admin" prefix from these URLs
+    Route::get('/appointments/active', [AppointmentController::class, 'activeAppointments'])->name('admin.appointments.active');
+    Route::patch('/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('admin.appointments.complete');
 });
 
 // SUPER ADMIN SECURE ROUTES

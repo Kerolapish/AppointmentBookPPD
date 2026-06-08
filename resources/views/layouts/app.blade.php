@@ -95,6 +95,10 @@
                                     class="flex items-center gap-2 transition {{ request()->routeIs('admin.availability') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fas fa-calendar-times"></i> Availability
                                 </a>
+                                <a href="{{ route('admin.appointments.active') }}"
+                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.appointments.active') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-calendar-check"></i> Active Workspace
+                                </a>
                                 <a href="{{ route('admin.reports') }}"
                                     class="flex items-center gap-2 transition {{ request()->routeIs('admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
                                     <i class="fa-solid fa-file"></i> Report
