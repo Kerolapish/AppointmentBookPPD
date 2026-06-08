@@ -68,15 +68,16 @@
             <div class="space-y-4">
                 @forelse($appointments as $appointment)
                     @php
-                        $appointmentDate = \Carbon\Carbon::parse($appointment->date);
+                        // FIXED NAME: Using a unified variable name cleanly within our item blocks
+                        $currentCardDate = \Carbon\Carbon::parse($appointment->date);
                     @endphp
                     <div
                         class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
 
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-blue-50 text-blue-600 rounded-xl flex flex-col items-center justify-center">
-                            <span class="text-xl font-bold leading-none">{{ $loopDate->format('d') }}</span>
-                            <span class="text-[10px] font-bold uppercase mt-1">{{ $loopDate->format('M') }}</span>
+                            <span class="text-xl font-bold leading-none">{{ $currentCardDate->format('d') }}</span>
+                            <span class="text-[10px] font-bold uppercase mt-1">{{ $currentCardDate->format('M') }}</span>
                         </div>
 
                         <div class="flex-1 text-center sm:text-left">
