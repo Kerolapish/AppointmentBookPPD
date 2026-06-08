@@ -134,13 +134,12 @@ class AppointmentController extends Controller
         return redirect()->route('my.appointments')->with('success', 'Appointment booked successfully!');
     }
 
-    // 3. View Booking History (FIXED USER SCOPE & VIEW PATH)
     // 3. View History (Enhanced Search & Filter for User Side)
     public function index(Request $request)
     {
         $query = Appointment::query();
         
-        // CRITICAL SECURITY FIX: If the logged-in person is NOT an admin, only show their own records
+        // Ensure regular users only see their own records
         if (Auth::user()->role !== 'admin') {
             $query->where('user_id', Auth::id());
         }
@@ -168,14 +167,13 @@ class AppointmentController extends Controller
 
         $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
         
-        // DYNAMIC LAYOUT ROUTER: Direct to the correct view depending on who is logged in
+        // 🔹 FIX 1: If Admin, route to your actual unified file -> resources/views/Admin/requests.blade.php
         if (Auth::user()->role === 'admin') {
-            // Checks if you have Admin/requests.blade.php or an admin subfolder template
             return view('Admin.requests', compact('appointments', 'status'));
         }
         
-        // This is for your regular users! Points to: resources/views/Appointments/appointments.blade.php
-        return view('Appointments.appointments', compact('appointments', 'status'));
+        // 🔹 FIX 2: If Regular User, route to your actual history file -> resources/views/Appointments/my-appointments.blade.php
+        return view('Appointments.my-appointments', compact('appointments', 'status'));
     }
 
     // 4. Cancel Appointment (User Side)
