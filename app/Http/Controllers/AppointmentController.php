@@ -139,7 +139,7 @@ class AppointmentController extends Controller
     {
         $query = Appointment::query();
         
-        // Use global auth() helper to avoid missing class import crashes
+        // Ensure regular users only see their own records
         if (auth()->check() && auth()->user()->role !== 'admin') {
             $query->where('user_id', auth()->id());
         }
@@ -165,14 +165,24 @@ class AppointmentController extends Controller
             });
         }
 
+        // Get the filtered/paginated rows for the core history table list
         $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
         
-        // Match against your actual file structure
+        // 🔹 FIX: Define the missing $upcoming collection variable expected by my-appointments.blade.php
+        $upcoming = Appointment::query()
+            ->where('user_id', auth()->id())
+            ->whereIn('status', ['pending', 'approved'])
+            ->whereDate('date', '>=', \Carbon\Carbon::today())
+            ->orderBy('date', 'asc')
+            ->get();
+        
+        // Match against your actual view folders
         if (auth()->check() && auth()->user()->role === 'admin') {
             return view('Admin.requests', compact('appointments', 'status'));
         }
         
-        return view('Appointments.my-appointments', compact('appointments', 'status'));
+        // Passing down both variables safely resolves the template compilation error
+        return view('Appointments.my-appointments', compact('appointments', 'status', 'upcoming'));
     }
 
     // 4. Cancel Appointment (User Side)
