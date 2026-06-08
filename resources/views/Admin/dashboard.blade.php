@@ -8,8 +8,7 @@
             <p class="text-gray-500 text-sm mt-1">Overview of appointment requests</p>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-
-                <div class="bg-white rounded-xl p-6 border shadow-sm flex items-center gap-4">
+                <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600 font-bold text-lg">
                         <i class="fa-regular fa-circle-check"></i>
@@ -20,7 +19,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 border shadow-sm flex items-center gap-4">
+                <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 font-bold text-lg">
                         <i class="fa-regular fa-clock"></i>
@@ -31,7 +30,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 shadow-sm flex items-center gap-4">
+                <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
                     <div
                         class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold text-lg">
                         <i class="fa-regular fa-circle-xmark"></i>
@@ -41,7 +40,6 @@
                         <p class="text-3xl font-bold text-gray-900">{{ $rejectedCount }}</p>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -49,7 +47,8 @@
             <div class="flex items-center justify-between mb-4 flex-col sm:flex-row gap-4">
                 <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
                     <h3 class="text-lg font-bold text-gray-900">Recent Requests</h3>
-                    <a href="{{ route('admin.requests') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <a href="{{ route('admin.requests') }}"
+                        class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
                         View All
                     </a>
                 </div>
@@ -58,7 +57,7 @@
                     class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <label for="status" class="text-sm font-medium text-gray-600">Status:</label>
                     <select name="status" id="status" onchange="document.getElementById('statusFilterForm').submit();"
-                        class="rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm text-gray-700 bg-white px-3 py-1.5 border">
+                        class="rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm text-gray-700 bg-white px-3 py-1.5 border cursor-pointer">
                         <option value="" {{ $statusFilter === '' ? 'selected' : '' }}>All Statuses</option>
                         <option value="pending" {{ $statusFilter === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="approved" {{ $statusFilter === 'approved' ? 'selected' : '' }}>Confirmed</option>
@@ -69,15 +68,16 @@
 
             <div class="space-y-4">
                 @forelse($appointments as $appointment)
+                    @php
+                    $appointmentDate = \Carbon\Carbon::parse($appointment->date);
+                    @php
                     <div
                         class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
 
                         <div
                             class="flex-shrink-0 w-16 h-16 bg-blue-50 text-blue-600 rounded-xl flex flex-col items-center justify-center">
-                            <span
-                                class="text-xl font-bold leading-none">{{ \Carbon\Carbon::parse($appointment->date)->format('d') }}</span>
-                            <span
-                                class="text-[10px] font-bold uppercase mt-1">{{ \Carbon\Carbon::parse($appointment->date)->format('M') }}</span>
+                            <span class="text-xl font-bold leading-none">{{ $appointmentDate->format('d') }}</span>
+                            <span class="text-[10px] font-bold uppercase mt-1">{{ $appointmentDate->format('M') }}</span>
                         </div>
 
                         <div class="flex-1 text-center sm:text-left">
@@ -96,33 +96,35 @@
                         </div>
 
                         <div>
-                            @if ($appointment->status == 'pending')
-                                <span class="bg-yellow-100 text-yellow-700 text-xs font-bold px-4 py-2 rounded-full">
+                            @if ($appointment->status === 'pending')
+                                <span
+                                    class="bg-yellow-100 text-yellow-700 text-xs font-bold px-4 py-2 rounded-full inline-block">
                                     Pending
                                 </span>
-                                {{-- FIXED: Changed checking from 'confirmed' to 'approved' to match database records --}}
-                            @elseif($appointment->status == 'approved' || $appointment->status == 'confirmed')
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-4 py-2 rounded-full">
+                            @elseif($appointment->status === 'approved' || $appointment->status === 'confirmed')
+                                <span
+                                    class="bg-green-100 text-green-700 text-xs font-bold px-4 py-2 rounded-full inline-block">
                                     Confirmed
                                 </span>
-                            @elseif($appointment->status == 'rejected')
-                                <span class="bg-red-100 text-red-700 text-xs font-bold px-4 py-2 rounded-full">
+                            @elseif($appointment->status === 'rejected')
+                                <span class="bg-red-100 text-red-700 text-xs font-bold px-4 py-2 rounded-full inline-block">
                                     Rejected
                                 </span>
                             @endif
                         </div>
-
                     </div>
                 @empty
-                    <div class="text-center py-10 bg-white rounded-xl border border-gray-100">
-                        <p class="text-gray-500">No appointments found matching this status.</p>
+                    <div class="text-center py-10 bg-white rounded-xl border border-gray-100 shadow-sm">
+                        <p class="text-gray-500 text-sm">No appointments found matching this status.</p>
                     </div>
                 @endforelse
             </div>
 
-            <div class="mt-4">
-                {{ $appointments->links() }}
-            </div>
+            @if ($appointments->hasPages())
+                <div class="mt-6">
+                    {{ $appointments->appends(request()->query())->links() }}
+                </div>
+            @endif
         </div>
 
     </div>

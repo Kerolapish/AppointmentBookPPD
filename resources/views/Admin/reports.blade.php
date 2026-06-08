@@ -4,8 +4,9 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Analytics Report</h1>
-            <p class="text-sm text-gray-500 mt-1">Overview of system performance ({{ $startDate->format('d M') }} -
-                {{ $endDate->format('d M Y') }}).</p>
+            <p class="text-sm text-gray-500 mt-1">
+                Overview of system performance ({{ $startDate->format('d M') }} - {{ $endDate->format('d M Y') }}).
+            </p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -97,11 +98,14 @@
                 <canvas id="doughnutChart"></canvas>
             </div>
             <div class="mt-4 flex justify-center gap-4 text-xs text-gray-600">
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> Confirmed
+                <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-green-500"></span> Confirmed
                 </div>
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span> Pending
+                <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span> Pending
                 </div>
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500"></span> Rejected
+                <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-red-500"></span> Rejected
                 </div>
             </div>
         </div>
@@ -111,142 +115,150 @@
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
             <h3 class="text-lg font-semibold text-gray-800">Activity Log</h3>
         </div>
-        <table class="w-full text-left">
-            <thead class="bg-white text-xs text-gray-500 uppercase font-semibold border-b border-gray-100">
-                <tr>
-                    <th class="px-6 py-4">Date</th>
-                    <th class="px-6 py-4">Applicant</th>
-                    <th class="px-6 py-4">Contact</th>
-                    <th class="px-6 py-4 text-right">Status</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
-                @forelse($appointments as $app)
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-gray-600">
-                            {{ \Carbon\Carbon::parse($app->date)->format('d M Y') }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-xs uppercase">
-                                    {{ substr($app->name, 0, 2) }}
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-900">{{ $app->name }}</div>
-                                    <div class="text-xs text-gray-400">ID: #{{ $app->id }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-gray-600">{{ $app->email }}</div>
-                            <div class="text-xs text-gray-400">{{ $app->phone ?? 'N/A' }}</div>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            @if ($app->status == 'confirmed')
-                                <span
-                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Confirmed</span>
-                            @elseif($app->status == 'rejected')
-                                <span
-                                    class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Rejected</span>
-                            @else
-                                <span
-                                    class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Pending</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-white text-xs text-gray-500 uppercase font-semibold border-b border-gray-100">
                     <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">No records found for this period.
-                        </td>
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4">Applicant</th>
+                        <th class="px-6 py-4">Contact</th>
+                        <th class="px-6 py-4 text-right">Status</th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    @forelse($appointments as $app)
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 text-gray-600">
+                                {{ Carbon\Carbon::parse($app->date)->format('d M Y') }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-xs uppercase">
+                                        {{ Str::substr($app->name, 0, 2) }}
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">{{ $app->name }}</div>
+                                        <div class="text-xs text-gray-400">ID: #{{ $app->id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-gray-600">{{ $app->email }}</div>
+                                <div class="text-xs text-gray-400">{{ $app->phone ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                @if ($app->status == 'confirmed')
+                                    <span
+                                        class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Confirmed</span>
+                                @elseif($app->status == 'rejected')
+                                    <span
+                                        class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Rejected</span>
+                                @else
+                                    <span
+                                        class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Pending</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                                No records found for this period.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 @endsection
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-
-        // 1. Data passed from Laravel
+        // 1. Data payload extraction
         const rawAppointments = @json($appointments);
-        const pendingCount = {{ $pending }};
-        const approvedCount = {{ $approved }};
-        const rejectedCount = {{ $rejected }};
+        const pendingCount = {{ (int) $pending }};
+        const approvedCount = {{ (int) $approved }};
+        const rejectedCount = {{ (int) $rejected }};
 
-        // 2. Process Data for Bar Chart
+        // 2. Process Dates for Bar Chart
         const dateCounts = {};
         rawAppointments.forEach(app => {
-            const date = app.date.split(' ')[0]; // Extract YYYY-MM-DD
-            dateCounts[date] = (dateCounts[date] || 0) + 1;
+            if (app.date) {
+                const date = app.date.split(' ')[0]; // Extract YYYY-MM-DD
+                dateCounts[date] = (dateCounts[date] || 0) + 1;
+            }
         });
 
         const labels = Object.keys(dateCounts).sort();
         const dataValues = labels.map(date => dateCounts[date]);
 
         // 3. Render Bar Chart
-        const ctxBar = document.getElementById('barChart').getContext('2d');
-        new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Appointments',
-                    data: dataValues,
-                    backgroundColor: '#3B82F6',
-                    borderRadius: 5,
-                    barThickness: 20,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
+        const ctxBar = document.getElementById('barChart');
+        if (ctxBar) {
+            new Chart(ctxBar.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Appointments',
+                        data: dataValues,
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 5,
+                        barThickness: labels.length > 10 ? 'flex' : 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
                         }
                     },
-                    x: {
-                        grid: {
+                    plugins: {
+                        legend: {
                             display: false
                         }
                     }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
                 }
-            }
-        });
+            });
+        }
 
         // 4. Render Doughnut Chart
-        const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
-        new Chart(ctxDoughnut, {
-            type: 'doughnut',
-            data: {
-                labels: ['Confirmed', 'Pending', 'Rejected'],
-                datasets: [{
-                    data: [approvedCount, pendingCount, rejectedCount],
-                    backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%',
-                plugins: {
-                    legend: {
-                        display: false
+        const ctxDoughnut = document.getElementById('doughnutChart');
+        if (ctxDoughnut) {
+            new Chart(ctxDoughnut.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Confirmed', 'Pending', 'Rejected'],
+                    datasets: [{
+                        data: [approvedCount, pendingCount, rejectedCount],
+                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
