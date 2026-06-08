@@ -138,7 +138,7 @@ class AppointmentController extends Controller
     public function index(Request $request)
     {
         $query = Appointment::query();
-        
+
         // Ensure regular users only see their own records
         if (auth()->check() && auth()->user()->role !== 'admin') {
             $query->where('user_id', auth()->id());
@@ -165,24 +165,34 @@ class AppointmentController extends Controller
             });
         }
 
-        // Get the filtered/paginated rows for the core history table list
+        // Core filtered appointments dataset
         $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
-        
-        // 🔹 FIX: Define the missing $upcoming collection variable expected by my-appointments.blade.php
+
+        // 🔹 FIX 1: Provide the $upcoming appointments collection
         $upcoming = Appointment::query()
             ->where('user_id', auth()->id())
             ->whereIn('status', ['pending', 'approved'])
             ->whereDate('date', '>=', \Carbon\Carbon::today())
             ->orderBy('date', 'asc')
             ->get();
-        
-        // Match against your actual view folders
+
+        // 🔹 FIX 2: Provide the $past appointments collection that line 126 needs!
+        $past = Appointment::query()
+            ->where('user_id', auth()->id())
+            ->where(function ($q) {
+                $q->whereIn('status', ['completed', 'rejected', 'cancelled', 'attended'])
+                    ->orWhereDate('date', '<', \Carbon\Carbon::today());
+            })
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Match layout targets against user authorization roles
         if (auth()->check() && auth()->user()->role === 'admin') {
             return view('Admin.requests', compact('appointments', 'status'));
         }
-        
-        // Passing down both variables safely resolves the template compilation error
-        return view('Appointments.my-appointments', compact('appointments', 'status', 'upcoming'));
+
+        // Pass all 4 expected context elements smoothly into the template container
+        return view('Appointments.my-appointments', compact('appointments', 'status', 'upcoming', 'past'));
     }
 
     // 4. Cancel Appointment (User Side)
@@ -337,7 +347,7 @@ class AppointmentController extends Controller
 
         $appointment->date = $request->date;
         $appointment->time = $request->time;
-        $appointment->status = 'pending'; 
+        $appointment->status = 'pending';
         $appointment->reschedule_reason = null;
         $appointment->save();
 
