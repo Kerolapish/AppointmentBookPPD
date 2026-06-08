@@ -139,9 +139,9 @@ class AppointmentController extends Controller
     {
         $query = Appointment::query();
         
-        // Ensure regular users only see their own records
-        if (Auth::user()->role !== 'admin') {
-            $query->where('user_id', Auth::id());
+        // Use global auth() helper to avoid missing class import crashes
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            $query->where('user_id', auth()->id());
         }
 
         $status = $request->get('status', 'pending');
@@ -149,9 +149,9 @@ class AppointmentController extends Controller
 
         if ($request->has('filter') && $request->filter != '') {
             if ($request->filter == 'this_week') {
-                $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                $query->whereBetween('date', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
             } elseif ($request->filter == 'this_month') {
-                $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year);
+                $query->whereMonth('date', \Carbon\Carbon::now()->month)->whereYear('date', \Carbon\Carbon::now()->year);
             }
         }
 
@@ -167,12 +167,11 @@ class AppointmentController extends Controller
 
         $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
         
-        // 🔹 FIX 1: If Admin, route to your actual unified file -> resources/views/Admin/requests.blade.php
-        if (Auth::user()->role === 'admin') {
+        // Match against your actual file structure
+        if (auth()->check() && auth()->user()->role === 'admin') {
             return view('Admin.requests', compact('appointments', 'status'));
         }
         
-        // 🔹 FIX 2: If Regular User, route to your actual history file -> resources/views/Appointments/my-appointments.blade.php
         return view('Appointments.my-appointments', compact('appointments', 'status'));
     }
 
