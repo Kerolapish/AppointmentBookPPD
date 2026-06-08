@@ -38,35 +38,35 @@
                 </div>
             </div>
 
-            <div id="form-grid-wrapper" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end transition-all duration-200">
+            <div id="form-grid-wrapper" class="grid grid-cols-1 md:grid-cols-3 gap-5 items-end transition-all duration-200">
                 <div id="single_date_container" class="w-full">
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Select Date</label>
                     <input type="date" id="off_date" name="off_date" min="{{ date('Y-m-d') }}"
-                        class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
                 </div>
 
                 <div id="range_date_container" class="hidden md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">Start Date</label>
                         <input type="date" id="start_date" name="start_date" min="{{ date('Y-m-d') }}"
-                            class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1.5">End Date</label>
                         <input type="date" id="end_date" name="end_date" min="{{ date('Y-m-d') }}"
-                            class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
                     </div>
                 </div>
 
                 <div id="reason_container" class="w-full">
                     <label class="block text-sm font-bold text-gray-700 mb-1.5">Reason (Optional)</label>
                     <input type="text" name="reason" placeholder="e.g., Public Holiday"
-                        class="w-full border border-gray-300 rounded-lg py-2 px-4 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        class="w-full border border-gray-300 rounded-lg py-2.5 px-4 text-sm text-gray-900 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
                 </div>
 
-                <div id="action_button_container" class="w-full">
+                <div id="action_button_container" class="w-full md:col-span-1">
                     <button type="submit"
-                        class="w-full px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 h-[42px]">
+                        class="w-full px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center justify-center gap-2 h-[42px] mt-2 md:mt-0">
                         <i class="fa-solid fa-lock"></i> Block Date
                     </button>
                 </div>

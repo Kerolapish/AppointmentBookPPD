@@ -7,11 +7,11 @@
             <h1 class="text-2xl font-bold text-gray-900">User Management</h1>
             <p class="text-sm text-gray-500 mt-1">Manage user accounts and view details.</p>
         </div>
-        <form method="GET" action="{{ route('admin.users') }}" class="relative w-full md:w-auto">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, email..."
-                class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full md:w-64 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm bg-white">
+        <div class="relative w-full md:w-auto">
+            <input type="text" id="userLiveSearch" placeholder="Search name, email..." value="{{ request('search') }}"
+                class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full md:w-64 focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm bg-white outline-none transition-colors">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-xs"></i>
-        </form>
+        </div>
     </div>
 
     {{-- TABLE 1: ADMINISTRATORS (View Only - No Actions) --}}
@@ -142,4 +142,39 @@
             </div>
         @endif
     </div>
+
+    {{-- Interactive Live-Search Engine Layer Script --}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchInput = document.getElementById('userLiveSearch');
+            let debounceTimer = null;
+
+            // Retain absolute text cursor focal index when reloading the DOM tree string context
+            if (searchInput.value.length > 0) {
+                searchInput.focus();
+                const currentVal = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = currentVal;
+            }
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+
+                // Wait 350ms after user finishes input keystroke to update parameters
+                debounceTimer = setTimeout(() => {
+                    const queryVal = searchInput.value;
+                    const destinationUrl = new URL(window.location.href);
+
+                    if (queryVal.trim() !== "") {
+                        destinationUrl.searchParams.set('search', queryVal);
+                        destinationUrl.searchParams.delete('page'); // Revert page index back to 1
+                    } else {
+                        destinationUrl.searchParams.delete('search');
+                    }
+
+                    window.location.href = destinationUrl.toString();
+                }, 350);
+            });
+        });
+    </script>
 @endsection

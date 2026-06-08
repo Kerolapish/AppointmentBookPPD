@@ -413,29 +413,27 @@ class AppointmentController extends Controller
     // 1. Dedicated Page: Display only approved appointments with instant search filtering
     public function activeAppointments(Request $request)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
-        }
-
-        // Base query looking strictly for approved items
         $query = Appointment::where('status', 'approved');
 
-        // Capture real-time search inputs from the browser
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('purpose', 'like', "%{$search}%")
                     ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhere('ips', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', "%{$search}%"); // Searches by student name
+                        $userQuery->where('name', 'like', "%{$search}%");
                     });
             });
         }
 
-        $appointments = $query->orderBy('date', 'asc')->paginate(15);
+        $appointments = $query->paginate(10);
 
-        return view('Admin.active-appointments', compact('appointments'));
+        // If request is AJAX, return only raw HTML rows to insert into tbody
+        if ($request->ajax()) {
+            return view('admin.partials.appointment-rows', compact('appointments'))->render();
+        }
+
+        return view('admin.active-appointments', compact('appointments'));
     }
 
     // 2. Process Action: Complete appointment and return
