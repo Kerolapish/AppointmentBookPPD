@@ -55,6 +55,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/availability', [AdminAvailabilityController::class, 'index'])->name('admin.availability');
     Route::post('/availability', [AdminAvailabilityController::class, 'store'])->name('admin.availability.store');
     Route::delete('/availability/{id}', [AdminAvailabilityController::class, 'destroy'])->name('admin.availability.delete');
+
+    Route::get('/admin/appointments/active', [AppointmentController::class, 'activeAppointments'])->name('admin.appointments.active');
+    Route::patch('/admin/appointments/{appointment}/complete', [AppointmentController::class, 'complete'])->name('admin.appointments.complete');
 });
 
 // SUPER ADMIN SECURE ROUTES
