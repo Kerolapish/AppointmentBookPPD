@@ -433,7 +433,7 @@ class AppointmentController extends Controller
             return view('admin.partials.appointment-rows', compact('appointments'))->render();
         }
 
-        return view('admin.active-appointments', compact('appointments'));
+        return view('Admin.active-appointments', compact('appointments'));
     }
 
     // 2. Process Action: Complete appointment and return
