@@ -68,9 +68,7 @@
             <div class="space-y-4">
                 @forelse($appointments as $appointment)
                     @php
-                        // TYPO FIXED: Properly closed the @php block using
-                    @endphp
-                    $loopDate = $appointment->date ? \Carbon\Carbon::parse($appointment->date) : \Carbon\Carbon::today();
+                        $appointmentDate = \Carbon\Carbon::parse($appointment->date);
                     @endphp
                     <div
                         class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 hover:shadow-md transition">
