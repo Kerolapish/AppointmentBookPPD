@@ -40,115 +40,116 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
 
-                    <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-4 lg:gap-6 flex-1">
                         {{-- Brand Section --}}
-                        <div class="flex-shrink-0 flex items-center gap-3">
+                        <div class="flex-shrink-0 flex items-center gap-2 lg:gap-3">
                             <img src="{{ asset('images/logoKPM.PNG') }}" alt="KPM Logo"
-                                class="h-14 w-auto object-contain">
-                            <div class="leading-tight border-l-2 border-gray-200 pl-3">
-                                <h1 class="font-bold text-gray-900 text-xl">PPD Kluang</h1>
-                                <p class="text-xs text-gray-500 uppercase tracking-wider font-bold">Appointment System
-                                </p>
+                                class="h-12 w-auto object-contain">
+                            <div class="leading-tight border-l-2 border-gray-200 pl-2 lg:pl-3">
+                                <h1 class="font-bold text-gray-900 text-lg lg:text-xl tracking-tight">PPD Kluang</h1>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Appointment
+                                    System</p>
                             </div>
                         </div>
 
                         {{-- Main Navigation Links --}}
-                        <div class="hidden sm:flex sm:space-x-6 items-center text-sm font-medium">
+                        <div
+                            class="hidden sm:flex space-x-2 md:space-x-3 lg:space-x-4 items-center text-xs md:text-sm font-medium ml-2 md:ml-4">
 
                             {{-- ===== SUPER ADMIN LINKS ===== --}}
                             @if (Auth::check() && Auth::user()->role === 'super_admin')
                                 <a href="{{ route('super_admin.dashboard') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-crown"></i> Master Dashboard
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('super_admin.dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-crown text-xs"></i> Master Dashboard
                                 </a>
 
                                 <a href="{{ route('super_admin.reports') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-chart-pie"></i> Reports
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('super_admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-chart-pie text-xs"></i> Reports
                                 </a>
 
                                 <a href="{{ route('super_admin.users') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.users') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-users"></i> Users
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('super_admin.users') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-users text-xs"></i> Users
                                 </a>
 
                                 <a href="{{ route('super_admin.availability') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('super_admin.availability*') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fas fa-calendar-times"></i> Availability
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('super_admin.availability*') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fas fa-calendar-times text-xs"></i> Availability
                                 </a>
 
                                 {{-- ===== REGULAR ADMIN LINKS ===== --}}
                             @elseif (Auth::check() && Auth::user()->role === 'admin')
                                 <a href="{{ route('admin.dashboard') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-house"></i> Dashboard
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('admin.dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-house text-xs"></i> Dashboard
                                 </a>
                                 <a href="{{ route('admin.requests') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.requests') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-check"></i> Request
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('admin.requests') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-check text-xs"></i> Request
                                 </a>
                                 <a href="{{ route('admin.users') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.users') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-user"></i> Users
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('admin.users') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-user text-xs"></i> Users
                                 </a>
                                 <a href="{{ route('admin.availability') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.availability') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fas fa-calendar-times"></i> Availability
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('admin.availability') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fas fa-calendar-times text-xs"></i> Availability
                                 </a>
                                 <a href="{{ route('admin.appointments.active') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.appointments.active') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-calendar-check"></i> Active Workspace
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('admin.appointments.active') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-calendar-check text-xs"></i> Active Workspace
                                 </a>
                                 <a href="{{ route('admin.reports') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-file"></i> Report
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('admin.reports') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-file text-xs"></i> Report
                                 </a>
 
                                 {{-- ===== USER LINKS ===== --}}
                             @else
                                 <a href="{{ route('dashboard') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-house"></i> Dashboard
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('dashboard') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-house text-xs"></i> Dashboard
                                 </a>
                                 <a href="{{ route('appointments.create') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('appointments.create') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-calendar-plus"></i> Book Appointment
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('appointments.create') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-calendar-plus text-xs"></i> Book Appointment
                                 </a>
                                 <a href="{{ route('my.appointments') }}"
-                                    class="flex items-center gap-2 transition {{ request()->routeIs('my.appointments') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
-                                    <i class="fa-solid fa-list-check"></i> My Appointments
+                                    class="flex items-center gap-1.5 whitespace-nowrap transition {{ request()->routeIs('my.appointments') ? 'text-blue-600 font-bold' : 'text-gray-500 hover:text-blue-600' }}">
+                                    <i class="fa-solid fa-list-check text-xs"></i> My Appointments
                                 </a>
                             @endif
                         </div>
                     </div>
 
                     {{-- User Profile Dropdown --}}
-                    <div class="hidden sm:flex sm:items-center sm:ml-6">
+                    <div class="hidden sm:flex sm:items-center sm:ml-4 flex-shrink-0">
                         <div class="relative ml-3">
                             <button type="button" onclick="toggleUserDropdown()"
-                                class="flex items-center gap-3 focus:outline-none transition hover:bg-gray-50 rounded-lg p-2 group"
+                                class="flex items-center gap-2 focus:outline-none transition hover:bg-gray-50 rounded-lg p-1.5 group"
                                 id="user-menu-button">
 
                                 <div class="text-right hidden md:block">
                                     <div
-                                        class="text-sm font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition">
+                                        class="text-xs lg:text-sm font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition">
                                         {{ Auth::user()->name }}
                                     </div>
                                     <div
-                                        class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 
+                                        class="text-[9px] lg:text-[10px] uppercase font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 
                                         {{ Auth::user()->role === 'super_admin' ? 'text-purple-600 bg-purple-50' : (Auth::user()->role === 'admin' ? 'text-blue-600 bg-blue-50' : 'text-green-600 bg-green-50') }}">
                                         {{ str_replace('_', ' ', Auth::user()->role) }}
                                     </div>
                                 </div>
 
                                 <div
-                                    class="h-10 w-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gray-200 ring-2 ring-transparent group-hover:ring-blue-100 transition">
+                                    class="h-9 w-9 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gray-200 ring-2 ring-transparent group-hover:ring-blue-100 transition flex-shrink-0">
                                     <img class="h-full w-full object-cover"
                                         src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=0D8ABC&color=fff&bold=true"
                                         alt="{{ Auth::user()->name }}">
                                 </div>
 
-                                <svg class="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition"
+                                <svg class="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition flex-shrink-0"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
