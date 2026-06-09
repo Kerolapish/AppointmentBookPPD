@@ -90,7 +90,7 @@
                         </p>
                     </div>
 
-                    <div class="w-full md:w-1/4 flex flex-col md:flex-row justify-end items-center gap-3">
+                    <div class="w-full md:w-1/4 flex flex-col items-center md:items-end justify-center gap-2">
                         @if ($appt->status == 'pending')
                             <span
                                 class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">Pending</span>
@@ -104,8 +104,20 @@
                         @elseif($appt->status == 'approved')
                             <span
                                 class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Approved</span>
+                            
+                            {{-- FIX ISSUE 4: Displaying the officer's name who processed the approval --}}
+                            @if($appt->officer)
+                                <span class="text-[11px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-user-check text-gray-400"></i> By: {{ $appt->officer->name }}
+                                </span>
+                            @elseif($appt->handled_by)
+                                <span class="text-[11px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-user-check text-gray-400"></i> By Admin
+                                </span>
+                            @endif
+
                             <a href="{{ route('appointments.reschedule', $appt->id) }}"
-                                class="text-xs text-blue-600 hover:text-blue-800 font-bold underline decoration-blue-300 hover:decoration-blue-800 underline-offset-4 transition">
+                                class="text-xs text-blue-600 hover:text-blue-800 font-bold mt-1 underline decoration-blue-300 hover:decoration-blue-800 underline-offset-4 transition">
                                 Reschedule
                             </a>
                         @elseif($appt->status == 'rejected')
@@ -150,9 +162,12 @@
                         <p class="text-xs text-gray-500"><span class="font-semibold">Location:</span> {{ $appt->location }}
                         </p>
                     </div>
-                    <div class="w-full md:w-1/4 flex justify-end items-center">
+                    <div class="w-full md:w-1/4 flex flex-col items-center md:items-end justify-center gap-1">
                         <span
                             class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-600 border border-gray-300">{{ ucfirst($appt->status) }}</span>
+                        @if($appt->status == 'completed' && $appt->officer)
+                            <span class="text-[10px] text-gray-400 mt-0.5">Handled by: {{ $appt->officer->name }}</span>
+                        @endif
                     </div>
                 </div>
             @endforeach

@@ -2,7 +2,6 @@
 
 @section('content')
     <style>
-        /* Expand Flatpickr to fill the container */
         .flatpickr-calendar.inline {
             width: 100% !important;
             box-shadow: none !important;
@@ -21,22 +20,56 @@
         .flatpickr-day {
             max-width: 100% !important;
             height: 45px !important;
-            /* Makes the rows taller */
             line-height: 45px !important;
             border-radius: 12px !important;
+            margin-top: 2px !important;
+            margin-bottom: 2px !important;
+            transition: all 0.15s ease;
         }
 
-        /* Status Colors */
-        .is-user-booked {
+        /* FIX: Style for "Your Bookings" (Blue) */
+        .flatpickr-day.is-user-booked {
             background-color: #3b82f6 !important;
             color: white !important;
-            font-weight: bold;
+            font-weight: bold !important;
+            border: 2px solid #2563eb !important;
         }
 
-        .is-booked {
+        .flatpickr-day.is-user-booked:hover {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+
+        /* FIX: Style for "Unavailable / Full" (Soft Red) */
+        .flatpickr-day.is-booked {
             background-color: #fee2e2 !important;
             color: #ef4444 !important;
-            opacity: 0.7;
+            opacity: 0.9 !important;
+            border: 1px solid #fca5a5 !important;
+            cursor: not-allowed !important;
+        }
+
+        .flatpickr-day.is-booked:hover {
+            background-color: #fee2e2 !important;
+            color: #ef4444 !important;
+        }
+
+        /* FIX: Weekend/Disabled days override to look clean */
+        .flatpickr-day.flatpickr-disabled,
+        .flatpickr-day.flatpickr-disabled:hover {
+            background-color: #f3f4f6 !important;
+            color: #9ca3af !important;
+            cursor: not-allowed !important;
+            border: none !important;
+        }
+
+        /* FIX: Active Selected date (Matches the Amber Reschedule theme color) */
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover {
+            background-color: #eab308 !important;
+            color: white !important;
+            border-color: #ca8a04 !important;
+            font-weight: bold !important;
         }
     </style>
 
@@ -49,7 +82,6 @@
         <div class="space-y-8">
             {{-- Stats Grid --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {{-- Total Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
@@ -66,7 +98,6 @@
                     </div>
                 </div>
 
-                {{-- Pending Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-amber-50 rounded-lg text-amber-600">
@@ -80,7 +111,6 @@
                     </div>
                 </div>
 
-                {{-- Active Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-green-50 rounded-lg text-green-600">
@@ -94,7 +124,6 @@
                     </div>
                 </div>
 
-                {{-- Upcoming Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-purple-50 rounded-lg text-purple-600">
@@ -110,7 +139,7 @@
                 </div>
             </div>
 
-            {{-- Main Content Grid --}}
+            {{-- Content --}}
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div class="lg:col-span-3 space-y-6">
                     <div class="flex items-center justify-between">
@@ -147,31 +176,11 @@
                                             <span><i class="fa-solid fa-location-dot mr-1"></i>
                                                 {{ $appointment->location }}</span>
                                         </div>
-                                        @if ($appointment->status === 'approved' && $appointment->admin)
-                                            <div
-                                                class="mt-2 flex items-center gap-2 text-xs font-medium text-green-700 bg-green-50 w-fit px-2 py-1 rounded-md border border-green-100">
-                                                <i class="fa-solid fa-user-check"></i>
-                                                <span>Approved by: {{ $appointment->admin->name }}</span>
-                                            </div>
-                                        @endif
                                     </div>
                                 </div>
-
                                 <div class="flex-shrink-0">
-                                    @if (in_array($appointment->status, ['approved', 'confirmed']))
-                                        <span
-                                            class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">Approved</span>
-                                    @elseif($appointment->status == 'pending')
-                                        <span
-                                            class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full">Pending</span>
-                                    @elseif($appointment->status == 'reschedule_requested')
-                                        <span
-                                            class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">Action
-                                            Required</span>
-                                    @else
-                                        <span
-                                            class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
-                                    @endif
+                                    <span
+                                        class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
                                 </div>
                             </div>
 
@@ -197,43 +206,6 @@
                             @endif
                         </div>
                     @endforeach
-
-                    @if ($upcomingAppointments->isEmpty())
-                        <div class="p-10 text-center bg-white rounded-xl border border-dashed border-gray-200">
-                            <p class="text-gray-500 font-medium">No upcoming appointments.</p>
-                            <a href="{{ route('appointments.create') }}"
-                                class="text-blue-600 text-sm font-bold mt-2 inline-block hover:underline">Book one now</a>
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Sidebar --}}
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-5 border-b border-gray-50">
-                            <h3 class="font-bold text-gray-900">Quick Actions</h3>
-                        </div>
-                        <div class="p-2">
-                            <a href="{{ route('appointments.create') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
-                                <div class="flex items-center">
-                                    <span
-                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </span> New Appointment
-                                </div>
-                            </a>
-                            <a href="{{ route('profile.edit') }}"
-                                class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 hover:text-blue-700 text-gray-700 text-sm font-medium transition group">
-                                <div class="flex items-center">
-                                    <span
-                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
-                                        <i class="fa-regular fa-user"></i>
-                                    </span> Edit Profile
-                                </div>
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -244,10 +216,9 @@
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-gray-900 bg-opacity-60" onclick="closeUserRescheduleModal()"></div>
             <div class="relative bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-
                 <div class="bg-yellow-50 px-6 py-5 border-b flex justify-between items-center">
                     <h3 class="text-xl font-bold text-yellow-900">Select New Appointment Time</h3>
-                    <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl">&times;</button>
+                    <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl font-bold">&times;</button>
                 </div>
 
                 <form id="userRescheduleForm" method="POST">
@@ -256,26 +227,41 @@
 
                     <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
                         <div class="md:col-span-7">
-                            <label class="block font-bold mb-3 text-gray-700">1. SELECT DATE</label>
-                            <div id="rescheduleCalendar" class="border rounded-xl p-2 bg-gray-50"></div>
+                            <label class="block font-bold mb-3 text-gray-700 text-xs tracking-wider">1. SELECT DATE</label>
+                            <div class="border rounded-2xl p-3 bg-gray-50">
+                                <input type="text" id="rescheduleCalendar" class="w-full hidden">
+                            </div>
                             <input type="hidden" name="date" id="modal_new_date" required>
                         </div>
 
                         <div class="md:col-span-5">
-                            <label class="block font-bold mb-3 text-gray-700">2. AVAILABLE SLOTS</label>
+                            <label class="block font-bold mb-3 text-gray-700 text-xs tracking-wider">2. AVAILABLE
+                                SLOTS</label>
                             <select name="time" id="modal_new_time" required
-                                class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
+                                class="w-full border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition bg-white shadow-sm text-sm">
                                 <option value="">Select a date first...</option>
                             </select>
                         </div>
                     </div>
 
+                    {{-- Modal Legend View Footer --}}
+                    <div class="px-8 pb-6 flex flex-wrap gap-4 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded-md bg-blue-600 inline-block shadow-sm"></span>
+                            <span class="text-gray-600 font-semibold">Your Bookings</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded-md bg-red-100 border border-red-300 inline-block shadow-sm"></span>
+                            <span class="text-gray-600 font-semibold">Unavailable / Full</span>
+                        </div>
+                    </div>
+
                     <div class="bg-gray-50 px-8 py-5 border-t flex justify-end gap-3">
                         <button type="button" onclick="closeUserRescheduleModal()"
-                            class="px-6 py-2 border rounded-xl">Cancel</button>
+                            class="px-6 py-2 border rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 transition">Cancel</button>
                         <button type="submit"
-                            class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New
-                            Time</button>
+                            class="px-8 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-bold text-sm transition shadow-sm">Submit
+                            New Time</button>
                     </div>
                 </form>
             </div>
@@ -283,15 +269,13 @@
     </div>
 
     <script>
-        // 1. Data passed from Controller
-        const blockedDates = @json($blockedDates);
-        const fullyBookedDates = @json($fullyBookedDates);
-        const userBookedDates = @json($userBookedDates);
+        const blockedDates = @json($blockedDates ?? []);
+        const fullyBookedDates = @json($fullyBookedDates ?? []);
+        const userBookedDates = @json($userBookedDates ?? []);
         const hourlySlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00"];
 
         let rescheduleFp;
 
-        // Helper function to safely parse dates matching Malaysian Timezone offsets
         function getLocalDateString(dateObj) {
             const year = dateObj.getFullYear();
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -300,40 +284,37 @@
         }
 
         function openUserRescheduleModal(id, oldDate, oldTime) {
-            console.log("Opening modal for ID:", id);
-
             const form = document.getElementById('userRescheduleForm');
             form.action = `/appointment/${id}/update-time`;
 
-            document.getElementById('modal_new_time').innerHTML = '<option value="">Select a date first...</option>';
-
             rescheduleFp = flatpickr("#rescheduleCalendar", {
                 inline: true,
-                static: true,
                 minDate: "today",
                 defaultDate: oldDate,
                 dateFormat: "Y-m-d",
                 disable: [
                     function(date) {
-                        // Disable Weekends (Saturday & Sunday)
                         if (date.getDay() === 0 || date.getDay() === 6) return true;
-
-                        // Disable specific dates safely
-                        const dStr = getLocalDateString(date);
-                        return [...blockedDates, ...fullyBookedDates].includes(dStr);
+                        return [...blockedDates, ...fullyBookedDates].includes(getLocalDateString(date));
                     }
                 ],
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     const dateStr = getLocalDateString(dayElem.dateObj);
 
-                    if (userBookedDates.includes(dateStr)) dayElem.classList.add("is-user-booked");
-                    if (fullyBookedDates.includes(dateStr)) dayElem.classList.add("is-booked");
+                    // Reset Flatpickr's native disabled classes that cause text to turn invisible
+                    dayElem.classList.remove("flatpickr-disabled");
+
+                    if (userBookedDates.includes(dateStr)) {
+                        dayElem.classList.add("is-user-booked");
+                    } else if (fullyBookedDates.includes(dateStr) || blockedDates.includes(dateStr)) {
+                        dayElem.classList.add("is-booked");
+                    }
                 },
                 onChange: function(selectedDates, dateStr) {
                     document.getElementById('modal_new_date').value = dateStr;
                     updateRescheduleTimeSlots(dateStr);
                 }
-            });
+            ]);
 
             document.getElementById('userRescheduleModal').classList.remove('hidden');
 
@@ -356,15 +337,24 @@
                     let option = document.createElement('option');
                     option.value = time;
 
-                    let hour = parseInt(time.split(':')[0]);
-                    let displayTime = (hour % 12 || 12) + ":00 " + (hour >= 12 ? 'PM' : 'AM');
+                    let [hours] = time.split(':');
+                    let startHour = parseInt(hours);
+                    let endHour = startHour + 1;
+                    let startAmPm = startHour >= 12 ? 'PM' : 'AM';
+                    let endAmPm = endHour >= 12 ? 'PM' : 'AM';
+                    let displayStartHour = startHour % 12 || 12;
+                    let displayEndHour = endHour % 12 || 12;
 
-                    option.text = bookedTimes.includes(time) ? `${displayTime} (Full)` : displayTime;
-                    option.disabled = bookedTimes.includes(time);
+                    const isBooked = bookedTimes.includes(time);
+                    option.text = `${displayStartHour}:00 ${startAmPm} - ${displayEndHour}:00 ${endAmPm}`;
+
+                    if (isBooked) {
+                        option.disabled = true;
+                        option.text += ' (Fully Booked)';
+                    }
                     timeSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error("Fetch error:", error);
                 timeSelect.innerHTML = '<option value="">Error loading times</option>';
             }
         }

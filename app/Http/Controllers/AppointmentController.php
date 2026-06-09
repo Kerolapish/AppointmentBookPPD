@@ -130,68 +130,81 @@ class AppointmentController extends Controller
             'status'   => 'pending',
         ]);
 
-        // Redirecting to the "My Appointments" index route instead of the root dashboard
         return redirect()->route('my.appointments')->with('success', 'Appointment booked successfully!');
     }
 
     // 3. View History (Enhanced Search & Filter for User Side)
     public function index(Request $request)
     {
-        $query = Appointment::query();
+        $search = $request->input('search');
+        $filter = $request->input('filter');
+        $userId = auth()->id();
+        $today = \Carbon\Carbon::today()->toDateString();
 
-        // Ensure regular users only see their own records
-        if (auth()->check() && auth()->user()->role !== 'admin') {
-            $query->where('user_id', auth()->id());
-        }
+        // Base upcoming query
+        $upcomingQuery = Appointment::where('user_id', $userId)
+            ->whereIn('status', ['pending', 'approved', 'reschedule_requested'])
+            ->where('date', '>=', $today);
 
-        $status = $request->get('status', 'pending');
-        $query->where('status', $status);
+        // Base past query
+        $pastQuery = Appointment::where('user_id', $userId)
+            ->where(function ($q) use ($today) {
+                $q->whereIn('status', ['completed', 'rejected', 'cancelled', 'attended'])
+                    ->orWhere('date', '<', $today);
+            });
 
-        if ($request->has('filter') && $request->filter != '') {
-            if ($request->filter == 'this_week') {
-                $query->whereBetween('date', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
-            } elseif ($request->filter == 'this_month') {
-                $query->whereMonth('date', \Carbon\Carbon::now()->month)->whereYear('date', \Carbon\Carbon::now()->year);
-            }
-        }
-
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
+        // Applied live search filters across both tabs
+        if (!empty($search)) {
+            $searchLogic = function ($q) use ($search) {
                 $q->where('purpose', 'like', "%{$search}%")
                     ->orWhere('ips', 'like', "%{$search}%")
                     ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhereDate('date', 'like', "%{$search}%");
-            });
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereRaw("DATE_FORMAT(date, '%W') LIKE ?", ["%{$search}%"]) // Matches day string e.g. Friday
+                    ->orWhereRaw("DATE_FORMAT(date, '%d %b') LIKE ?", ["%{$search}%"]) // Matches partial custom dates e.g. 16 Jan
+                    ->orWhere('date', 'like', "%{$search}%");
+            };
+
+            $upcomingQuery->where($searchLogic);
+            $pastQuery->where($searchLogic);
         }
 
-        // Core filtered appointments dataset
-        $appointments = $query->orderBy('created_at', 'desc')->paginate(10);
+        // Time Filters
+        if (!empty($filter)) {
+            $filterLogic = function ($q) use ($filter) {
+                if ($filter == 'this_week') {
+                    $q->whereBetween('date', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+                } elseif ($filter == 'this_month') {
+                    $q->whereMonth('date', \Carbon\Carbon::now()->month)->whereYear('date', \Carbon\Carbon::now()->year);
+                }
+            };
 
-        // 🔹 FIX 1: Provide the $upcoming appointments collection
-        $upcoming = Appointment::query()
-            ->where('user_id', auth()->id())
-            ->whereIn('status', ['pending', 'approved'])
-            ->whereDate('date', '>=', \Carbon\Carbon::today())
-            ->orderBy('date', 'asc')
-            ->get();
+            $upcomingQuery->where($filterLogic);
+            $pastQuery->where($filterLogic);
+        }
 
-        // 🔹 FIX 2: Provide the $past appointments collection that line 126 needs!
-        $past = Appointment::query()
-            ->where('user_id', auth()->id())
-            ->where(function ($q) {
-                $q->whereIn('status', ['completed', 'rejected', 'cancelled', 'attended'])
-                    ->orWhereDate('date', '<', \Carbon\Carbon::today());
-            })
-            ->orderBy('date', 'desc')
-            ->get();
+        $upcoming = $upcomingQuery->orderBy('date', 'asc')->get();
+        $past = $pastQuery->orderBy('date', 'desc')->get();
 
-        // Match layout targets against user authorization roles
+        // Keep standard $appointments pagination query functional for admin roles
+        $adminQuery = Appointment::query();
         if (auth()->check() && auth()->user()->role === 'admin') {
+            $status = $request->get('status', 'pending');
+            $adminQuery->where('status', $status);
+
+            if (!empty($search)) {
+                $adminQuery->where(function ($q) use ($search) {
+                    $q->where('purpose', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                });
+            }
+            $appointments = $adminQuery->orderBy('created_at', 'desc')->paginate(10);
             return view('Admin.requests', compact('appointments', 'status'));
         }
 
-        // Pass all 4 expected context elements smoothly into the template container
+        $status = $request->get('status', 'pending');
+        $appointments = Appointment::where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
+
         return view('Appointments.my-appointments', compact('appointments', 'status', 'upcoming', 'past'));
     }
 
@@ -248,6 +261,7 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::with('user')->findOrFail($id);
         $appointment->status = 'approved';
+        $appointment->handled_by = auth()->id(); // Log the user id of the administrator who approved this item
         $appointment->save();
 
         try {
@@ -277,6 +291,7 @@ class AppointmentController extends Controller
 
         $appointment->status = 'rejected';
         $appointment->reject_reason = $reason;
+        $appointment->handled_by = auth()->id();
         $appointment->save();
 
         $msg = "STATUS UPDATE: Your PPD Kluang appointment status has been rejected. Reason: " . $reason;
@@ -296,6 +311,7 @@ class AppointmentController extends Controller
 
         $appointment->status = 'reschedule_requested';
         $appointment->reschedule_reason = $request->reason;
+        $appointment->handled_by = auth()->id();
         $appointment->save();
 
         $msg = "NOTICE: Admin has requested that you reschedule your appointment. Reason: " . $request->reason . ". Please open your dashboard to choose a new slot.";
@@ -314,15 +330,20 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::findOrFail($id);
 
+        // Security Gate: Ensure users can only modify their own data
         if ($appointment->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
+        // 1. Check if the date is blocked by Admin (OffDay/Public Holiday)
         $isBlocked = OffDay::where('off_date', $request->date)->exists();
         if ($isBlocked) {
-            return back()->withInput()->withErrors(['date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
+            return back()->withInput()->withErrors([
+                'date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).'
+            ]);
         }
 
+        // 2. Check if total daily appointments have reached the ceiling of 5 slots
         if ($request->date != $appointment->date) {
             $dailyCount = Appointment::where('date', $request->date)
                 ->whereNotIn('status', ['cancelled', 'rejected'])
@@ -335,6 +356,7 @@ class AppointmentController extends Controller
             }
         }
 
+        // 3. Double-check if this exact hourly time slot is already taken
         $slotTaken = Appointment::where('date', $request->date)
             ->where('time', $request->time)
             ->where('id', '!=', $id)
@@ -342,9 +364,12 @@ class AppointmentController extends Controller
             ->exists();
 
         if ($slotTaken) {
-            return back()->withInput()->withErrors(['time' => 'This specific time slot is already taken.']);
+            return back()->withInput()->withErrors([
+                'time' => 'This specific time slot is already taken.'
+            ]);
         }
 
+        // Apply changes and clear old state flags
         $appointment->date = $request->date;
         $appointment->time = $request->time;
         $appointment->status = 'pending';
@@ -370,10 +395,9 @@ class AppointmentController extends Controller
         return response()->json($bookedTimes);
     }
 
-    // 11. Notification Dispatched Manager (SMTP Email Channel ONLY)
+    // 11. Notification Dispatched Manager
     private function sendNotifications($appointment, $messageBody)
     {
-        // 1. Email Dispatch Channel
         try {
             if ($appointment->user && $appointment->user->email) {
                 Mail::to($appointment->user->email)->send(new \App\Mail\AppointmentStatusUpdated($appointment, $messageBody));
@@ -382,15 +406,12 @@ class AppointmentController extends Controller
             \Log::error("Production Mail Delivery Failed: " . $e->getMessage());
         }
 
-        // 2. WhatsApp Gateway Channel (RESTORED & ACTIVE)
         try {
             $recipientPhone = $appointment->phone ?? ($appointment->user->phone ?? null);
 
             if ($recipientPhone) {
-                // Cleans up any formatting spaces out of user inputs cleanly
                 $cleanPhone = preg_replace('/[^0-9]/', '', $recipientPhone);
 
-                // Ensure international country code prefixes match your provider gateway requirements (e.g., adding '60' for Malaysia if missing)
                 if (str_starts_with($cleanPhone, '0')) {
                     $cleanPhone = '60' . substr($cleanPhone, 1);
                 }
@@ -402,15 +423,12 @@ class AppointmentController extends Controller
                 ]);
 
                 \Log::info("WhatsApp dispatch triggered successfully for: " . $cleanPhone);
-            } else {
-                \Log::warning("WhatsApp skipped: No valid phone property found on Appointment ID " . $appointment->id);
             }
         } catch (\Exception $e) {
             \Log::error("Production WhatsApp Gateway Failure: " . $e->getMessage());
         }
     }
 
-    // 1. Dedicated Page: Display only approved appointments with instant search filtering
     public function activeAppointments(Request $request)
     {
         $query = Appointment::where('status', 'approved');
@@ -428,7 +446,6 @@ class AppointmentController extends Controller
 
         $appointments = $query->paginate(10);
 
-        // If request is AJAX, return only raw HTML rows to insert into tbody
         if ($request->ajax()) {
             return view('admin.partials.appointment-rows', compact('appointments'))->render();
         }
@@ -436,7 +453,6 @@ class AppointmentController extends Controller
         return view('Admin.active-appointments', compact('appointments'));
     }
 
-    // 2. Process Action: Complete appointment and return
     public function complete(Appointment $appointment)
     {
         if (auth()->user()->role !== 'admin') {

@@ -27,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::patch('/appointment/{id}/update-time', [AppointmentController::class, 'updateTime'])->name('user.appointment.updateTime');
     Route::get('/get-booked-times', [AppointmentController::class, 'getBookedTimes'])->name('appointments.booked-times');
+    Route::patch('/appointment/{appointment}/update-time', [AppointmentController::class, 'updateTime'])->name('appointments.update-time');
+    Route::get('/appointments/booked-times', [AppointmentController::class, 'getBookedTimes'])->name('appointments.booked-times');
 });
 
 // PROFILE ROUTES
@@ -44,13 +46,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     Route::get('/report/pdf', [AdminController::class, 'downloadReportPdf'])->name('admin.report.pdf');
-    
+
     // --- Appointment Actions Routed to AppointmentController ---
     Route::get('/requests', [AppointmentController::class, 'appointments'])->name('admin.requests');
     Route::patch('/approve/{id}', [AppointmentController::class, 'approve'])->name('admin.approve');
     Route::patch('/appointment/{id}/reject', [AppointmentController::class, 'reject'])->name('admin.appointment.reject');
     Route::patch('/appointment/{id}/request-reschedule', [AppointmentController::class, 'reschedule'])->name('admin.appointment.reschedule');
-    
+
     // --- Admin Availability Block ---
     Route::get('/availability', [AdminAvailabilityController::class, 'index'])->name('admin.availability');
     Route::post('/availability', [AdminAvailabilityController::class, 'store'])->name('admin.availability.store');
@@ -67,7 +69,7 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_a
     Route::delete('/appointments/{id}', [SuperAdminDashboardController::class, 'destroy'])->name('appointments.destroy');
     Route::get('/users', [SuperAdminDashboardController::class, 'users'])->name('users');
     Route::put('/users/{id}', [SuperAdminDashboardController::class, 'updateUser'])->name('users.update');
-    
+
     // Availability & Schedule Settings
     Route::get('/availability', [SuperAdminDashboardController::class, 'availability'])->name('availability');
     Route::post('/availability', [SuperAdminDashboardController::class, 'storeBlockedDate'])->name('availability.store');

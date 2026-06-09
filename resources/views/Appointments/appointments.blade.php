@@ -246,40 +246,32 @@
     </script>
 
     <script>
-        // Get all arrays from your controller
         const blockedDates = @json($blockedDates ?? []);
         const fullyBookedDates = @json($fullyBookedDates ?? []);
         const userBookedDates = @json($userBookedDates ?? []);
-
-        // Combine ALL of them so Flatpickr disables them
         const allUnavailableDates = [...blockedDates, ...fullyBookedDates, ...userBookedDates];
 
-        // Initialize the calendar
+        function parseLocalDateString(date) {
+            return date.getFullYear() + "-" +
+                String(date.getMonth() + 1).padStart(2, '0') + "-" +
+                String(date.getDate()).padStart(2, '0');
+        }
+
         flatpickr("#dateInput", {
             inline: true,
             minDate: "today",
-            maxDate: new Date().fp_incr(
-            30), // 👈 ROLLING WINDOW: Lock calendar selections to a maximum of 30 days ahead from today
+            maxDate: new Date().fp_incr(30),
             disable: [
                 function(date) {
-                    // Disable Weekends
                     return (date.getDay() === 0 || date.getDay() === 6);
                 },
                 function(date) {
-                    let formattedDate = date.getFullYear() + "-" +
-                        String(date.getMonth() + 1).padStart(2, '0') + "-" +
-                        String(date.getDate()).padStart(2, '0');
-
-                    return allUnavailableDates.includes(formattedDate);
+                    return allUnavailableDates.includes(parseLocalDateString(date));
                 }
             ],
             onDayCreate: function(dObj, dStr, fp, dayElem) {
-                let date = dayElem.dateObj;
-                let formattedDate = date.getFullYear() + "-" +
-                    String(date.getMonth() + 1).padStart(2, '0') + "-" +
-                    String(date.getDate()).padStart(2, '0');
+                let formattedDate = parseLocalDateString(dayElem.dateObj);
 
-                // Apply CSS classes based on status
                 if (userBookedDates.includes(formattedDate)) {
                     dayElem.classList.add("is-user-booked");
                     dayElem.title = "You already have an appointment on this date!";
@@ -291,7 +283,6 @@
                     dayElem.title = "Fully booked";
                 }
             },
-
             onChange: function(selectedDates, dateStr, instance) {
                 document.getElementById('dateInput').value = dateStr;
                 updateTimeSlots();
@@ -300,17 +291,7 @@
     </script>
 
     <script>
-        // Define 1-hour time slots (8:00 AM to 4:00 PM, skipping 1:00 PM for lunch)
-        const hourlySlots = [
-            "08:00", // 8:00 AM - 9:00 AM
-            "09:00", // 9:00 AM - 10:00 AM
-            "10:00", // 10:00 AM - 11:00 AM
-            "11:00", // 11:00 AM - 12:00 PM
-            "12:00", // 12:00 PM - 1:00 PM
-            // 13:00 is skipped for lunch
-            "14:00", // 2:00 PM - 3:00 PM
-            "15:00" // 3:00 PM - 4:00 PM
-        ];
+        const hourlySlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00"];
 
         async function updateTimeSlots() {
             const dateInput = document.getElementById('dateInput');
@@ -322,7 +303,6 @@
             if (!dateInput.value) return;
 
             try {
-                // Fetch booked times from the server
                 const response = await fetch(`{{ route('appointments.booked-times') }}?date=${dateInput.value}`);
                 const bookedTimes = await response.json();
 
@@ -332,10 +312,8 @@
                     let option = document.createElement('option');
                     option.value = time;
 
-                    // Check if this specific time is in the bookedTimes array
                     const isBooked = bookedTimes.includes(time);
 
-                    // Format display text
                     let [hours] = time.split(':');
                     let startHour = parseInt(hours);
                     let endHour = startHour + 1;
@@ -351,14 +329,12 @@
                         option.text += ' (Fully Booked)';
                         option.classList.add('text-red-400');
                     }
-
                     timeSelect.appendChild(option);
                 });
 
                 timeSelect.disabled = false;
 
             } catch (error) {
-                console.error('Error fetching times:', error);
                 timeSelect.innerHTML = '<option value="">Error loading times</option>';
             }
         }

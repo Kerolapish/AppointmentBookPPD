@@ -12,13 +12,13 @@ class Appointment extends Model
 
     protected $fillable = [
         'user_id',
-        'name',      // <--- Added
+        'name',
         'phone',
-        'ips',       // <--- Added
-        'purpose',   // <--- Renamed from 'title'
+        'ips',
+        'purpose',
         'location',
-        'date',      // <--- Added
-        'time',      // <--- Added
+        'date',
+        'time',
         'status',
         'reschedule_reason',
     ];
