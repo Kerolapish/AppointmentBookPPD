@@ -141,7 +141,8 @@
                                 </div>
                                 <div class="border-t border-gray-100 my-1 mx-2"></div>
                                 <div class="px-2 pb-1">
-                                    <form method="POST" action="{{ route('logout') }} shadow-none">
+                                    {{-- FIXED DESKTOP LOGOUT FORM TYPO HERE --}}
+                                    <form method="POST" action="{{ route('logout') }}" class="shadow-none m-0">
                                         @csrf
                                         <button type="submit"
                                             class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -236,11 +237,8 @@
                         <form method="POST" action="{{ route('logout') }}" class="shadow-none">
                             @csrf
                             <button type="submit"
-                                class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                <div
-                                    class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-3 group-hover:bg-red-100 group-hover:text-red-600">
-                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                                </div>Log Out
+                                class="p-2 text-red-500 hover:text-red-700 transition bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
                             </button>
                         </form>
                     </div>
