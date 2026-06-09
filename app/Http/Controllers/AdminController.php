@@ -196,7 +196,7 @@ class AdminController extends Controller
 
         $this->sendWhatsAppNotification($appointment->user->phone, $message);
 
-        return redirect()->back()->with('success', 'Appointment approved and WhatsApp notification sent!');
+        return redirect()->back()->with('success', 'Appointment approved!');
     }
 
     public function reject(Request $request, $id)
@@ -226,7 +226,7 @@ class AdminController extends Controller
             Log::error('WhatsApp Rejection Error: ' . $e->getMessage());
         }
 
-        return redirect()->back()->with('success', 'Appointment rejected and notification sent!');
+        return redirect()->back()->with('success', 'Appointment rejected successfully!');
     }
 
     public function requestReschedule(Request $request, $id)
@@ -245,7 +245,7 @@ class AdminController extends Controller
 
         $this->sendWhatsAppNotification($appointment->user->phone, $message);
 
-        return redirect()->back()->with('success', 'Reschedule requested and WhatsApp notification sent!');
+        return redirect()->back()->with('success', 'Reschedule requested successfully!');
     }
 
     // ==========================================
@@ -254,6 +254,15 @@ class AdminController extends Controller
 
     private function sendWhatsAppNotification($phone, $messageBody)
     {
+        // 🚨 TEMPORARILY DISABLED FOR TOMORROW'S DEMO/TESTING
+        Log::info('WhatsApp notification skipped intentionally (Temporarily Commented Out)');
+        return;
+
+        /* if (!$phone) {
+            Log::warning('WhatsApp skipped: user has no recorded phone number.');
+            return;
+        }
+
         try {
             $sid    = env('TWILIO_SID');
             $token  = env('TWILIO_AUTH_TOKEN');
@@ -275,6 +284,7 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             Log::error('WhatsApp Error: ' . $e->getMessage());
         }
+        */
     }
 
     public function getBookedTimes(Request $request)

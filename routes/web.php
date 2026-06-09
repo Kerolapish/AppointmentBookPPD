@@ -51,11 +51,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/requests', [AppointmentController::class, 'appointments'])->name('admin.requests');
     Route::patch('/approve/{id}', [AppointmentController::class, 'approve'])->name('admin.approve');
     Route::patch('/appointment/{id}/reject', [AppointmentController::class, 'reject'])->name('admin.appointment.reject');
-    Route::patch('/appointment/{id}/request-reschedule', [AppointmentController::class, 'reschedule'])->name('admin.appointment.reschedule');
+    
+    // FIX: Directed to AdminController@requestReschedule instead of AppointmentController@reschedule
+    Route::patch('/appointment/{id}/request-reschedule', [AdminController::class, 'requestReschedule'])->name('admin.appointment.reschedule');
 
     // --- Admin Availability Block ---
     Route::get('/availability', [AdminAvailabilityController::class, 'index'])->name('admin.availability');
-    Route::post('/availability', [AdminAvailabilityController::class, 'store'])->name('admin.availability.store');
+    Route::post('/availability', [AdminAvailabilityController::class, 'storeBlockedDate'])->name('admin.availability.store');
     Route::delete('/availability/{id}', [AdminAvailabilityController::class, 'destroy'])->name('admin.availability.delete');
 
     // 🔹 FIXED: Removed the duplicate "/admin" prefix from these URLs
