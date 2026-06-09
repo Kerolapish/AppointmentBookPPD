@@ -284,12 +284,16 @@
     </div>
 
     <script>
-        const blockedDates = {!! json_encode($blockedDates ?? []) !!};
-        const fullyBookedDates = {!! json_encode($fullyBookedDates ?? []) !!};
-        const userBookedDates = {!! json_encode($userBookedDates ?? []) !!};
-        const hourlySlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00"];
+        const rawBlocked = '{!! isset($blockedDates) ? json_encode($blockedDates) : '[]' !!}';
+        const rawFullyBooked = '{!! isset($fullyBookedDates) ? json_encode($fullyBookedDates) : '[]' !!}';
+        const rawUserBooked = '{!! isset($userBookedDates) ? json_encode($userBookedDates) : '[]' !!}';
 
-        let rescheduleFp;
+        // Safely parse the strings into native JavaScript arrays without breaking compilation syntax
+        const blockedDates = JSON.parse(rawBlocked || "[]");
+        const fullyBookedDates = JSON.parse(rawFullyBooked || "[]");
+        const userBookedDates = JSON.parse(rawUserBooked || "[]");
+
+        const hourlySlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00"];
 
         function getLocalDateString(dateObj) {
             const year = dateObj.getFullYear();
