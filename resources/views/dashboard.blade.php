@@ -22,54 +22,39 @@
             height: 45px !important;
             line-height: 45px !important;
             border-radius: 12px !important;
-            margin-top: 2px !important;
-            margin-bottom: 2px !important;
-            transition: all 0.15s ease;
         }
 
-        /* FIX: Style for "Your Bookings" (Blue) */
-        .flatpickr-day.is-user-booked {
+        /* FIX: Ensure your bookings have clear white text on blue background */
+        .is-user-booked {
             background-color: #3b82f6 !important;
             color: white !important;
             font-weight: bold !important;
             border: 2px solid #2563eb !important;
         }
 
-        .flatpickr-day.is-user-booked:hover {
-            background-color: #2563eb !important;
-            color: white !important;
-        }
-
-        /* FIX: Style for "Unavailable / Full" (Soft Red) */
-        .flatpickr-day.is-booked {
+        /* FIX: Soft red background with red text for blocked/full slots */
+        .is-booked {
             background-color: #fee2e2 !important;
             color: #ef4444 !important;
             opacity: 0.9 !important;
             border: 1px solid #fca5a5 !important;
-            cursor: not-allowed !important;
         }
 
-        .flatpickr-day.is-booked:hover {
-            background-color: #fee2e2 !important;
-            color: #ef4444 !important;
-        }
-
-        /* FIX: Weekend/Disabled days override to look clean */
-        .flatpickr-day.flatpickr-disabled,
+        /* FIX: Force Flatpickr's default disabled day style to not break text readability */
+        .flatpickr-day.flatpickr-disabled, 
         .flatpickr-day.flatpickr-disabled:hover {
-            background-color: #f3f4f6 !important;
             color: #9ca3af !important;
+            background: #f3f4f6 !important;
             cursor: not-allowed !important;
             border: none !important;
         }
 
-        /* FIX: Active Selected date (Matches the Amber Reschedule theme color) */
+        /* FIX: Active selected day custom background look */
         .flatpickr-day.selected,
         .flatpickr-day.selected:hover {
             background-color: #eab308 !important;
             color: white !important;
             border-color: #ca8a04 !important;
-            font-weight: bold !important;
         }
     </style>
 
@@ -139,8 +124,9 @@
                 </div>
             </div>
 
-            {{-- Content --}}
+            {{-- Content Layout --}}
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {{-- Left Column: Appointments List --}}
                 <div class="lg:col-span-3 space-y-6">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-gray-900">Upcoming Appointments</h2>
@@ -179,8 +165,16 @@
                                     </div>
                                 </div>
                                 <div class="flex-shrink-0">
-                                    <span
-                                        class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
+                                    {{-- FIX: Dynamic conditional color badges instead of forcing yellow for all --}}
+                                    @if($appointment->status === 'approved')
+                                        <span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full">Approved</span>
+                                    @elseif($appointment->status === 'reschedule_requested')
+                                        <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">Reschedule Requested</span>
+                                    @elseif($appointment->status === 'rejected')
+                                        <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-full">Rejected</span>
+                                    @else
+                                        <span class="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
+                                    @endif
                                 </div>
                             </div>
 
@@ -207,6 +201,21 @@
                         </div>
                     @endforeach
                 </div>
+
+                {{-- FIX: Restored Right Column layout container for Quick Actions panel beside the list component --}}
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <a href="{{ route('appointments.create') }}" class="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-medium transition text-sm">
+                                <i class="fa-solid fa-circle-plus"></i> New Appointment
+                            </a>
+                            <a href="{{ route('profile.show') }}" class="flex items-center gap-3 w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl font-medium transition text-sm">
+                                <i class="fa-solid fa-user-gear"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -218,7 +227,7 @@
             <div class="relative bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
                 <div class="bg-yellow-50 px-6 py-5 border-b flex justify-between items-center">
                     <h3 class="text-xl font-bold text-yellow-900">Select New Appointment Time</h3>
-                    <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl font-bold">&times;</button>
+                    <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl">&times;</button>
                 </div>
 
                 <form id="userRescheduleForm" method="POST">
@@ -227,41 +236,26 @@
 
                     <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
                         <div class="md:col-span-7">
-                            <label class="block font-bold mb-3 text-gray-700 text-xs tracking-wider">1. SELECT DATE</label>
-                            <div class="border rounded-2xl p-3 bg-gray-50">
-                                <input type="text" id="rescheduleCalendar" class="w-full hidden">
-                            </div>
+                            <label class="block font-bold mb-3 text-gray-700">1. SELECT DATE</label>
+                            <input type="text" id="rescheduleCalendar" class="w-full hidden">
                             <input type="hidden" name="date" id="modal_new_date" required>
                         </div>
 
                         <div class="md:col-span-5">
-                            <label class="block font-bold mb-3 text-gray-700 text-xs tracking-wider">2. AVAILABLE
-                                SLOTS</label>
+                            <label class="block font-bold mb-3 text-gray-700">2. AVAILABLE SLOTS</label>
                             <select name="time" id="modal_new_time" required
-                                class="w-full border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 outline-none transition bg-white shadow-sm text-sm">
+                                class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
                                 <option value="">Select a date first...</option>
                             </select>
                         </div>
                     </div>
 
-                    {{-- Modal Legend View Footer --}}
-                    <div class="px-8 pb-6 flex flex-wrap gap-4 text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="w-4 h-4 rounded-md bg-blue-600 inline-block shadow-sm"></span>
-                            <span class="text-gray-600 font-semibold">Your Bookings</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-4 h-4 rounded-md bg-red-100 border border-red-300 inline-block shadow-sm"></span>
-                            <span class="text-gray-600 font-semibold">Unavailable / Full</span>
-                        </div>
-                    </div>
-
                     <div class="bg-gray-50 px-8 py-5 border-t flex justify-end gap-3">
                         <button type="button" onclick="closeUserRescheduleModal()"
-                            class="px-6 py-2 border rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                            class="px-6 py-2 border rounded-xl">Cancel</button>
                         <button type="submit"
-                            class="px-8 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-bold text-sm transition shadow-sm">Submit
-                            New Time</button>
+                            class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New
+                            Time</button>
                     </div>
                 </form>
             </div>
@@ -300,8 +294,8 @@
                 ],
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     const dateStr = getLocalDateString(dayElem.dateObj);
-
-                    // Reset Flatpickr's native disabled classes that cause text to turn invisible
+                    
+                    // FIX: Strip flatpickr's default text fading classes to preserve colors clearly
                     dayElem.classList.remove("flatpickr-disabled");
 
                     if (userBookedDates.includes(dateStr)) {
@@ -351,6 +345,7 @@
                     if (isBooked) {
                         option.disabled = true;
                         option.text += ' (Fully Booked)';
+                        option.classList.add('text-red-400');
                     }
                     timeSelect.appendChild(option);
                 });
