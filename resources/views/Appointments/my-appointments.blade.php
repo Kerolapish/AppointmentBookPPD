@@ -22,20 +22,20 @@
             </button>
         </div>
 
-        <form method="GET" action="{{ route('my.appointments') }}" class="mb-6">
+        <form id="searchForm" method="GET" action="{{ route('my.appointments') }}" class="mb-6">
             <div class="flex flex-col sm:flex-row gap-4">
 
                 <div class="relative flex-grow">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                         <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}"
+                    <input type="text" name="search" id="searchInput" value="{{ request('search') }}"
                         class="w-full py-2.5 pl-10 pr-4 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Search purpose, date (e.g., 16 Jan), or day (e.g., Friday)...">
+                        placeholder="Search purpose, date (e.g., 16 Jan), or day (e.g., Friday)..." autocomplete="off">
                 </div>
 
                 <div class="sm:w-48">
-                    <select name="filter" onchange="this.form.submit()"
+                    <select name="filter" onchange="document.getElementById('searchForm').submit()"
                         class="w-full p-2.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                         <option value="">All Time</option>
                         <option value="this_week" {{ request('filter') == 'this_week' ? 'selected' : '' }}>This Week
@@ -174,5 +174,25 @@
             document.getElementById('tab-' + tab).classList.add('text-blue-600', 'border-blue-600', 'font-bold');
             document.getElementById('tab-' + tab).classList.remove('text-gray-500');
         }
+
+        // --- AUTOMATIC LIVE SEARCH LOGIC ---
+        const searchInput = document.getElementById('searchInput');
+        const searchForm = document.getElementById('searchForm');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+
+            // Wait 500ms after the user stops typing before auto-submitting
+            debounceTimer = setTimeout(() => {
+                searchForm.submit();
+            }, 500);
+        });
+
+        // Keep the text cursor at the end of the text on auto-load
+        const val = searchInput.value;
+        searchInput.value = '';
+        searchInput.focus();
+        searchInput.value = val;
     </script>
 @endsection

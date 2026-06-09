@@ -240,44 +240,47 @@
     </div>
 
     {{-- Reschedule Modal --}}
-<div id="userRescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-60" onclick="closeUserRescheduleModal()"></div>
-        <div class="relative bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-            
-            <div class="bg-yellow-50 px-6 py-5 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold text-yellow-900">Select New Appointment Time</h3>
-                <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl">&times;</button>
+    <div id="userRescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-60" onclick="closeUserRescheduleModal()"></div>
+            <div class="relative bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+
+                <div class="bg-yellow-50 px-6 py-5 border-b flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-yellow-900">Select New Appointment Time</h3>
+                    <button onclick="closeUserRescheduleModal()" class="text-yellow-600 text-2xl">&times;</button>
+                </div>
+
+                <form id="userRescheduleForm" method="POST">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
+                        <div class="md:col-span-7">
+                            <label class="block font-bold mb-3 text-gray-700">1. SELECT DATE</label>
+                            <div id="rescheduleCalendar" class="border rounded-xl p-2 bg-gray-50"></div>
+                            <input type="hidden" name="date" id="modal_new_date" required>
+                        </div>
+
+                        <div class="md:col-span-5">
+                            <label class="block font-bold mb-3 text-gray-700">2. AVAILABLE SLOTS</label>
+                            <select name="time" id="modal_new_time" required
+                                class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
+                                <option value="">Select a date first...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-8 py-5 border-t flex justify-end gap-3">
+                        <button type="button" onclick="closeUserRescheduleModal()"
+                            class="px-6 py-2 border rounded-xl">Cancel</button>
+                        <button type="submit"
+                            class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New
+                            Time</button>
+                    </div>
+                </form>
             </div>
-
-            <form id="userRescheduleForm" method="POST">
-                @csrf 
-                @method('PATCH')
-                
-                <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
-                    <div class="md:col-span-7">
-                        <label class="block font-bold mb-3 text-gray-700">1. SELECT DATE</label>
-                        <div id="rescheduleCalendar" class="border rounded-xl p-2 bg-gray-50"></div>
-                        <input type="hidden" name="date" id="modal_new_date" required>
-                    </div>
-
-                    <div class="md:col-span-5">
-                        <label class="block font-bold mb-3 text-gray-700">2. AVAILABLE SLOTS</label>
-                        <select name="time" id="modal_new_time" required 
-                            class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
-                            <option value="">Select a date first...</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 px-8 py-5 border-t flex justify-end gap-3">
-                    <button type="button" onclick="closeUserRescheduleModal()" class="px-6 py-2 border rounded-xl">Cancel</button>
-                    <button type="submit" class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New Time</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
     <script>
         // 1. Data passed from Controller
@@ -288,34 +291,41 @@
 
         let rescheduleFp;
 
-        function openUserRescheduleModal(id, oldDate, oldTime) {
-            console.log("Opening modal for ID:", id); // Debug check
+        // Helper function to safely parse dates matching Malaysian Timezone offsets
+        function getLocalDateString(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-            // Set the form action dynamically
+        function openUserRescheduleModal(id, oldDate, oldTime) {
+            console.log("Opening modal for ID:", id);
+
             const form = document.getElementById('userRescheduleForm');
             form.action = `/appointment/${id}/update-time`;
 
-            // Reset time dropdown
             document.getElementById('modal_new_time').innerHTML = '<option value="">Select a date first...</option>';
 
-            // Initialize Flatpickr
             rescheduleFp = flatpickr("#rescheduleCalendar", {
                 inline: true,
-                static: true, // Keeps it pinned to the container
+                static: true,
                 minDate: "today",
                 defaultDate: oldDate,
                 dateFormat: "Y-m-d",
                 disable: [
                     function(date) {
-                        // Disable Weekends
+                        // Disable Weekends (Saturday & Sunday)
                         if (date.getDay() === 0 || date.getDay() === 6) return true;
-                        // Disable specific dates from admin or full slots
-                        const dStr = date.toISOString().split('T')[0];
+
+                        // Disable specific dates safely
+                        const dStr = getLocalDateString(date);
                         return [...blockedDates, ...fullyBookedDates].includes(dStr);
                     }
                 ],
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
-                    const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+                    const dateStr = getLocalDateString(dayElem.dateObj);
+
                     if (userBookedDates.includes(dateStr)) dayElem.classList.add("is-user-booked");
                     if (fullyBookedDates.includes(dateStr)) dayElem.classList.add("is-booked");
                 },
@@ -325,10 +335,8 @@
                 }
             });
 
-            // Show the modal
             document.getElementById('userRescheduleModal').classList.remove('hidden');
 
-            // Auto-load slots if a date is already selected
             if (oldDate) {
                 document.getElementById('modal_new_date').value = oldDate;
                 updateRescheduleTimeSlots(oldDate);
@@ -348,7 +356,6 @@
                     let option = document.createElement('option');
                     option.value = time;
 
-                    // Format for 12-hour display
                     let hour = parseInt(time.split(':')[0]);
                     let displayTime = (hour % 12 || 12) + ":00 " + (hour >= 12 ? 'PM' : 'AM');
 
