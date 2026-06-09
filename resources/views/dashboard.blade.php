@@ -38,6 +38,14 @@
             color: #ef4444 !important;
             opacity: 0.7;
         }
+
+        /* Blocked by Admin Style */
+        .is-blocked-admin {
+            background-color: #f3f4f6 !important; /* Muted gray background */
+            color: #9ca3af !important; /* Dimmed text color */
+            text-decoration: line-through !important; /* Strikethrough effect */
+            cursor: not-allowed !important;
+        }
     </style>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -94,17 +102,17 @@
                     </div>
                 </div>
 
-                {{-- Upcoming Card --}}
+                {{-- Completed Card --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
-                        <div class="p-3 bg-purple-50 rounded-lg text-purple-600">
-                            <i class="fa-regular fa-calendar text-xl"></i>
+                        <div class="p-3 bg-slate-100 rounded-lg text-slate-700">
+                            <i class="fa-solid fa-check-double text-xl"></i>
                         </div>
-                        <span class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">This Month</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded-full">Closed</span>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['upcoming'] }}</h3>
-                        <p class="text-gray-500 text-sm">Upcoming</p>
+                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['completed'] ?? 0 }}</h3>
+                        <p class="text-gray-500 text-sm">Completed Appointments</p>
                     </div>
                 </div>
             </div>
@@ -279,11 +287,14 @@
     </div>
 
     <script>
-        // 1. Data passed from Controller
-        const blockedDates = @json($blockedDates);
-        const fullyBookedDates = @json($fullyBookedDates);
-        const userBookedDates = @json($userBookedDates);
+        // 1. Data passed safely from Controller
+        const blockedDates = @json($blockedDates) || [];
+        const fullyBookedDates = @json($fullyBookedDates) || [];
+        const userBookedDates = @json($userBookedDates) || [];
         const hourlySlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00"];
+
+        // Combine non-selectable dates safely ahead of execution
+        const restrictedDates = blockedDates.concat(fullyBookedDates);
 
         let rescheduleFp;
 
@@ -316,14 +327,21 @@
 
                         // Disable specific dates safely
                         const dStr = getLocalDateString(date);
-                        return [...blockedDates, ...fullyBookedDates].includes(dStr);
+                        return restrictedDates.includes(dStr);
                     }
                 ],
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     const dateStr = getLocalDateString(dayElem.dateObj);
 
-                    if (userBookedDates.includes(dateStr)) dayElem.classList.add("is-user-booked");
-                    if (fullyBookedDates.includes(dateStr)) dayElem.classList.add("is-booked");
+                    if (userBookedDates.includes(dateStr)) {
+                        dayElem.classList.add("is-user-booked");
+                    }
+                    if (fullyBookedDates.includes(dateStr)) {
+                        dayElem.classList.add("is-booked");
+                    }
+                    if (blockedDates.includes(dateStr)) {
+                        dayElem.classList.add("is-blocked-admin");
+                    }
                 },
                 onChange: function(selectedDates, dateStr) {
                     document.getElementById('modal_new_date').value = dateStr;
