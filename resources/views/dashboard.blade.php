@@ -24,7 +24,6 @@
             border-radius: 12px !important;
         }
 
-        /* FIX: Ensure your bookings have clear white text on blue background */
         .is-user-booked {
             background-color: #3b82f6 !important;
             color: white !important;
@@ -32,7 +31,6 @@
             border: 2px solid #2563eb !important;
         }
 
-        /* FIX: Soft red background with red text for blocked/full slots */
         .is-booked {
             background-color: #fee2e2 !important;
             color: #ef4444 !important;
@@ -40,7 +38,6 @@
             border: 1px solid #fca5a5 !important;
         }
 
-        /* FIX: Force Flatpickr's default disabled day style to not break text readability */
         .flatpickr-day.flatpickr-disabled, 
         .flatpickr-day.flatpickr-disabled:hover {
             color: #9ca3af !important;
@@ -49,7 +46,6 @@
             border: none !important;
         }
 
-        /* FIX: Active selected day custom background look */
         .flatpickr-day.selected,
         .flatpickr-day.selected:hover {
             background-color: #eab308 !important;
@@ -72,13 +68,12 @@
                         <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
                             <i class="fa-solid fa-calendar-check text-xl"></i>
                         </div>
-                        <span
-                            class="text-xs font-bold px-2 py-1 rounded-full {{ $percentageChange >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                            {{ $percentageChange > 0 ? '+' : '' }}{{ $percentageChange }}%
+                        <span class="text-xs font-bold px-2 py-1 rounded-full {{ ($percentageChange ?? 0) >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                            {{ ($percentageChange ?? 0) > 0 ? '+' : '' }}{{ $percentageChange ?? 0 }}%
                         </span>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-3xl font-bold text-gray-900">{{ $totalAppointments }}</h3>
+                        <h3 class="text-3xl font-bold text-gray-900">{{ $totalAppointments ?? 0 }}</h3>
                         <p class="text-gray-500 text-sm">Total Appointments</p>
                     </div>
                 </div>
@@ -91,7 +86,7 @@
                         <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-1 rounded-full">Pending</span>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['pending'] }}</h3>
+                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['pending'] ?? 0 }}</h3>
                         <p class="text-gray-500 text-sm">Pending Approval</p>
                     </div>
                 </div>
@@ -104,22 +99,22 @@
                         <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">Active</span>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['confirmed'] }}</h3>
+                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['confirmed'] ?? 0 }}</h3>
                         <p class="text-gray-500 text-sm">Confirmed</p>
                     </div>
                 </div>
 
+                {{-- UPDATED: This card now tracks completed entries when an admin closes out an appointment --}}
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-start">
                         <div class="p-3 bg-purple-50 rounded-lg text-purple-600">
-                            <i class="fa-regular fa-calendar text-xl"></i>
+                            <i class="fa-solid fa-circle-check text-xl"></i>
                         </div>
-                        <span class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">This
-                            Month</span>
+                        <span class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">Closed</span>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['upcoming'] }}</h3>
-                        <p class="text-gray-500 text-sm">Upcoming</p>
+                        <h3 class="text-3xl font-bold text-gray-900">{{ $stats['completed'] ?? 0 }}</h3>
+                        <p class="text-gray-500 text-sm">Completed</p>
                     </div>
                 </div>
             </div>
@@ -130,79 +125,74 @@
                 <div class="lg:col-span-3 space-y-6">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-gray-900">Upcoming Appointments</h2>
-                        <a href="{{ route('my.appointments') }}"
-                            class="text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline flex items-center gap-1">
+                        <a href="{{ route('my.appointments') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline flex items-center gap-1">
                             View All <i class="fa-solid fa-arrow-right text-xs"></i>
                         </a>
                     </div>
 
-                    @foreach ($upcomingAppointments as $appointment)
-                        @php
-                            $dateObj = \Carbon\Carbon::parse($appointment->date);
-                            $timeObj = \Carbon\Carbon::parse($appointment->time);
-                        @endphp
+                    @if(isset($upcomingAppointments) && count($upcomingAppointments) > 0)
+                        @foreach ($upcomingAppointments as $appointment)
+                            @php
+                                $dateObj = \Carbon\Carbon::parse($appointment->date);
+                                $timeObj = \Carbon\Carbon::parse($appointment->time);
+                            @endphp
 
-                        <div
-                            class="mb-4 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition {{ $appointment->status === 'reschedule_requested' ? 'border-yellow-400 ring-1 ring-yellow-400' : '' }}">
-                            <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div class="flex items-center gap-4 w-full">
-                                    <div
-                                        class="bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-center min-w-[70px] border border-blue-100">
-                                        <span
-                                            class="block text-xs font-bold uppercase tracking-wider">{{ $dateObj->format('M') }}</span>
-                                        <span class="block text-xl font-bold">{{ $dateObj->format('d') }}</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-bold text-gray-900">{{ $appointment->purpose }}</h3>
-                                        <p class="text-xs text-blue-500 font-semibold mb-1">{{ $appointment->ips }}</p>
-                                        <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                                            <span><i class="fa-regular fa-clock mr-1"></i>
-                                                {{ $timeObj->format('h:i A') }}</span>
-                                            <span class="hidden sm:inline text-gray-300">|</span>
-                                            <span><i class="fa-solid fa-location-dot mr-1"></i>
-                                                {{ $appointment->location }}</span>
+                            <div class="mb-4 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition {{ $appointment->status === 'reschedule_requested' ? 'border-yellow-400 ring-1 ring-yellow-400' : '' }}">
+                                <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div class="flex items-center gap-4 w-full">
+                                        <div class="bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-center min-w-[70px] border border-blue-100">
+                                            <span class="block text-xs font-bold uppercase tracking-wider">{{ $dateObj->format('M') }}</span>
+                                            <span class="block text-xl font-bold">{{ $dateObj->format('d') }}</span>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-gray-900">{{ $appointment->purpose }}</h3>
+                                            <p class="text-xs text-blue-500 font-semibold mb-1">{{ $appointment->ips }}</p>
+                                            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                                <span><i class="fa-regular fa-clock mr-1"></i> {{ $timeObj->format('h:i A') }}</span>
+                                                <span class="hidden sm:inline text-gray-300">|</span>
+                                                <span><i class="fa-solid fa-location-dot mr-1"></i> {{ $appointment->location }}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="flex-shrink-0">
-                                    {{-- FIX: Dynamic conditional color badges instead of forcing yellow for all --}}
-                                    @if($appointment->status === 'approved')
-                                        <span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full">Approved</span>
-                                    @elseif($appointment->status === 'reschedule_requested')
-                                        <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">Reschedule Requested</span>
-                                    @elseif($appointment->status === 'rejected')
-                                        <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-full">Rejected</span>
-                                    @else
-                                        <span class="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            @if ($appointment->status === 'reschedule_requested')
-                                <div
-                                    class="bg-yellow-50 border-t border-yellow-200 p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div>
-                                        <h3 class="text-sm font-bold text-yellow-800">
-                                            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Admin requested a time
-                                            change
-                                        </h3>
-                                        <p class="mt-1 text-sm text-yellow-700">
-                                            <strong>Reason:</strong>
-                                            {{ $appointment->reschedule_reason ?? 'Please pick a new time slot.' }}
-                                        </p>
+                                    <div class="flex-shrink-0">
+                                        @if($appointment->status === 'approved')
+                                            <span class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1.5 rounded-full">Approved</span>
+                                        @elseif($appointment->status === 'reschedule_requested')
+                                            <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">Reschedule Requested</span>
+                                        @elseif($appointment->status === 'rejected')
+                                            <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-full">Rejected</span>
+                                        @else
+                                            <span class="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>
+                                        @endif
                                     </div>
-                                    <button type="button"
-                                        onclick="openUserRescheduleModal('{{ $appointment->id }}', '{{ $appointment->date }}', '{{ $appointment->time }}')"
-                                        class="shrink-0 bg-yellow-400 px-4 py-2 rounded-md text-sm font-bold text-yellow-900 hover:bg-yellow-500 transition shadow-sm w-full sm:w-auto text-center">
-                                        Pick New Time
-                                    </button>
                                 </div>
-                            @endif
+
+                                @if ($appointment->status === 'reschedule_requested')
+                                    <div class="bg-yellow-50 border-t border-yellow-200 p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div>
+                                            <h3 class="text-sm font-bold text-yellow-800">
+                                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Admin requested a time change
+                                            </h3>
+                                            <p class="mt-1 text-sm text-yellow-700">
+                                                <strong>Reason:</strong> {{ $appointment->reschedule_reason ?? 'Please pick a new time slot.' }}
+                                            </p>
+                                        </div>
+                                        <button type="button" onclick="openUserRescheduleModal('{{ $appointment->id }}', '{{ $appointment->date }}', '{{ $appointment->time }}')"
+                                            class="shrink-0 bg-yellow-400 px-4 py-2 rounded-md text-sm font-bold text-yellow-900 hover:bg-yellow-500 transition shadow-sm w-full sm:w-auto text-center">
+                                            Pick New Time
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="bg-white p-8 rounded-xl border text-center text-gray-500">
+                            No upcoming appointments scheduled.
                         </div>
-                    @endforeach
+                    @endif
                 </div>
 
-                {{-- FIX: Restored Right Column layout container for Quick Actions panel beside the list component --}}
+                {{-- Quick Actions sidebar card grid layout right panel element placement restored --}}
                 <div class="lg:col-span-1 space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <h3 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Quick Actions</h3>
@@ -220,7 +210,7 @@
         </div>
     </div>
 
-    {{-- Reschedule Modal --}}
+    {{-- Reschedule Modal Window Instance Component markup structure context --}}
     <div id="userRescheduleModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-gray-900 bg-opacity-60" onclick="closeUserRescheduleModal()"></div>
@@ -243,19 +233,15 @@
 
                         <div class="md:col-span-5">
                             <label class="block font-bold mb-3 text-gray-700">2. AVAILABLE SLOTS</label>
-                            <select name="time" id="modal_new_time" required
-                                class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
+                            <select name="time" id="modal_new_time" required class="w-full border rounded-xl py-3 px-4 focus:ring-2 focus:ring-yellow-400 outline-none">
                                 <option value="">Select a date first...</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="bg-gray-50 px-8 py-5 border-t flex justify-end gap-3">
-                        <button type="button" onclick="closeUserRescheduleModal()"
-                            class="px-6 py-2 border rounded-xl">Cancel</button>
-                        <button type="submit"
-                            class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New
-                            Time</button>
+                        <button type="button" onclick="closeUserRescheduleModal()" class="px-6 py-2 border rounded-xl">Cancel</button>
+                        <button type="submit" class="px-8 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Submit New Time</button>
                     </div>
                 </form>
             </div>
@@ -263,6 +249,7 @@
     </div>
 
     <script>
+        // Formulate clear defaults arrays inside script to avoid rendering evaluation crash blocks
         const blockedDates = @json($blockedDates ?? []);
         const fullyBookedDates = @json($fullyBookedDates ?? []);
         const userBookedDates = @json($userBookedDates ?? []);
@@ -284,7 +271,7 @@
             rescheduleFp = flatpickr("#rescheduleCalendar", {
                 inline: true,
                 minDate: "today",
-                defaultDate: oldDate,
+                defaultDate: oldDate || "today",
                 dateFormat: "Y-m-d",
                 disable: [
                     function(date) {
@@ -294,8 +281,6 @@
                 ],
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     const dateStr = getLocalDateString(dayElem.dateObj);
-                    
-                    // FIX: Strip flatpickr's default text fading classes to preserve colors clearly
                     dayElem.classList.remove("flatpickr-disabled");
 
                     if (userBookedDates.includes(dateStr)) {
