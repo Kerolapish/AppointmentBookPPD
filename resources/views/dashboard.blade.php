@@ -2,7 +2,7 @@
 
 @section('content')
     <style>
-        /* Expand Flatpickr to fill the container */
+        /* Expand Flatpickr to fill the container neatly */
         .flatpickr-calendar.inline {
             width: 100% !important;
             box-shadow: none !important;
@@ -18,33 +18,58 @@
             max-width: 100% !important;
         }
 
+        /* Recreating the elegant circular day design from Picture 1 */
         .flatpickr-day {
-            max-width: 100% !important;
-            height: 45px !important;
-            /* Makes the rows taller */
-            line-height: 45px !important;
-            border-radius: 12px !important;
+            max-width: 40px !important;
+            height: 40px !important;
+            line-height: 40px !important;
+            border-radius: 50% !important; /* Perfect circles */
+            margin: 4px auto !important;
+            border: 1px solid transparent !important;
+            transition: all 0.2s ease;
         }
 
-        /* Status Colors */
-        .is-user-booked {
-            background-color: #3b82f6 !important;
-            color: white !important;
-            font-weight: bold;
+        /* Currently Selected Date Style */
+        .flatpickr-day.selected, 
+        .flatpickr-day.selected:hover {
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            border: 2px solid #475569 !important;
         }
 
-        .is-booked {
-            background-color: #fee2e2 !important;
-            color: #ef4444 !important;
-            opacity: 0.7;
+        /* 1. YOUR BOOKINGS STYLE (Matches Picture 1) */
+        .flatpickr-day.is-user-booked {
+            background-color: #eff6ff !important; /* Soft blue fill */
+            color: #1d4ed8 !important; /* Dark blue text */
+            border: 1px solid #bfdbfe !important; /* Clear blue ring */
+            font-weight: 600 !important;
         }
 
-        /* Blocked by Admin Style */
-        .is-blocked-admin {
-            background-color: #f3f4f6 !important; /* Muted gray background */
-            color: #9ca3af !important; /* Dimmed text color */
-            text-decoration: line-through !important; /* Strikethrough effect */
-            cursor: not-allowed !important;
+        /* 2. UNAVAILABLE / FULL STYLE (Matches Picture 1) */
+        .flatpickr-day.is-booked,
+        .flatpickr-day.disabled.is-booked {
+            background-color: #fee2e2 !important; /* Soft red fill */
+            color: #dc2626 !important; /* Dark red text */
+            border: 1px solid #fca5a5 !important; /* Clear red ring */
+            opacity: 1 !important; /* Prevent Flatpickr from fading it out */
+        }
+
+        /* 3. BLOCKED BY ADMIN STYLE */
+        .flatpickr-day.is-blocked-admin,
+        .flatpickr-day.disabled.is-blocked-admin {
+            background-color: #fef3c7 !important; /* Soft amber fill */
+            color: #d97706 !important; /* Amber text */
+            border: 1px solid #fcd34d !important;
+            text-decoration: line-through !important;
+            opacity: 1 !important;
+        }
+
+        /* 4. WEEKENDS STYLE (Matches Picture 1 Legend) */
+        .flatpickr-day.is-weekend,
+        .flatpickr-day.disabled.is-weekend {
+            background-color: #f1f5f9 !important; /* Light gray fill */
+            color: #94a3b8 !important; /* Muted slate text */
+            opacity: 1 !important;
         }
     </style>
 
@@ -262,7 +287,28 @@
                     <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8">
                         <div class="md:col-span-7">
                             <label class="block font-bold mb-3 text-gray-700">1. SELECT DATE</label>
-                            <div id="rescheduleCalendar" class="border rounded-xl p-2 bg-gray-50"></div>
+                            <div id="rescheduleCalendar" class="border rounded-xl p-2 bg-white"></div>
+                            
+                            {{-- Visual Legend Grid exactly matching Picture 1 Layout --}}
+                            <div class="mt-4 grid grid-cols-2 gap-2 text-[11px] font-bold tracking-wide uppercase">
+                                <div class="flex items-center gap-2 p-2 rounded-lg border border-blue-100 bg-blue-50 text-blue-700">
+                                    <span class="w-3 h-3 rounded-full bg-[#eff6ff] border border-[#bfdbfe] inline-block"></span>
+                                    Your Bookings
+                                </div>
+                                <div class="flex items-center gap-2 p-2 rounded-lg border border-red-100 bg-red-50 text-red-700">
+                                    <span class="w-3 h-3 rounded-full bg-[#fee2e2] border border-[#fca5a5] inline-block"></span>
+                                    Unavailable / Full
+                                </div>
+                                <div class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white text-gray-700">
+                                    <span class="w-3 h-3 rounded-full bg-white border border-gray-400 inline-block"></span>
+                                    Available Slots
+                                </div>
+                                <div class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
+                                    <span class="w-3 h-3 rounded-full bg-[#f1f5f9] inline-block"></span>
+                                    Weekends
+                                </div>
+                            </div>
+
                             <input type="hidden" name="date" id="modal_new_date" required>
                         </div>
 
@@ -332,7 +378,14 @@
                 ],
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     const dateStr = getLocalDateString(dayElem.dateObj);
+                    const dayOfWeek = dayElem.dateObj.getDay();
 
+                    // Apply Weekend Class explicitly
+                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        dayElem.classList.add("is-weekend");
+                    }
+
+                    // Map corresponding relational classes
                     if (userBookedDates.includes(dateStr)) {
                         dayElem.classList.add("is-user-booked");
                     }
