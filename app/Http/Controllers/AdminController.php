@@ -184,21 +184,29 @@ class AdminController extends Controller
     // ==========================================
 
     public function approve($id)
-    {
-        $appointment = Appointment::findOrFail($id);
+{
+    $appointment = Appointment::findOrFail($id);
 
-        $appointment->status = 'approved';
-        $appointment->approved_by = auth()->id();
-        $appointment->save();
+    $appointment->status = 'approved';
+    $appointment->approved_by = auth()->id();
+    $appointment->save();
 
-        $dateFormatted = \Carbon\Carbon::parse($appointment->date)->format('d M Y');
-        $message = "Hello {$appointment->user->name}! Great news, your appointment for {$appointment->purpose} on {$dateFormatted} has been APPROVED. See you then!";
+    // 1. Add safe fallbacks just in case the user data is missing
+    $name = $appointment->user->name ?? 'Customer';
+    $phone = $appointment->user->phone ?? null;
 
-        $this->sendWhatsAppNotification($appointment->user->phone, $message);
+    $dateFormatted = \Carbon\Carbon::parse($appointment->date)->format('d M Y');
+    
+    // 2. Use the safe $name variable here
+    $message = "Hello {$name}! Great news, your appointment for {$appointment->purpose} on {$dateFormatted} has been APPROVED. See you then!";
 
-        return redirect()->back()->with('success', 'Appointment approved!');
+    // 3. Only send WhatsApp if a phone number exists
+    if ($phone) {
+        $this->sendWhatsAppNotification($phone, $message);
     }
 
+    return redirect()->back()->with('success', 'Appointment approved!');
+}
     public function reject(Request $request, $id)
     {
         $appointment = Appointment::findOrFail($id);
