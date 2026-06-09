@@ -200,9 +200,9 @@ class AdminController extends Controller
         $message = "Hello {$name}! Great news, your appointment for {$appointment->purpose} on {$dateFormatted} has been APPROVED. See you then!";
 
         // Only send WhatsApp if a phone number exists
-        if ($phone) {
-            $this->sendWhatsAppNotification($phone, $message);
-        }
+        //if ($phone) {
+        //   $this->sendWhatsAppNotification($phone, $message);
+        //}
 
         return redirect()->back()->with('success', 'Appointment approved!');
     }
@@ -227,11 +227,11 @@ class AdminController extends Controller
             "*Reason:* {$reason}\n\n" .
             "Please contact us if you have any further questions.";
 
-        try {
-            $this->sendWhatsAppNotification($appointment->user->phone, $message);
-        } catch (\Exception $e) {
-            Log::error('WhatsApp Rejection Error: ' . $e->getMessage());
-        }
+        // try {
+        //    $this->sendWhatsAppNotification($appointment->user->phone, $message);
+        // } catch (\Exception $e) {
+        //     Log::error('WhatsApp Rejection Error: ' . $e->getMessage());
+        // }
 
         return redirect()->back()->with('success', 'Appointment rejected successfully!');
     }
@@ -250,7 +250,7 @@ class AdminController extends Controller
 
         $message = "Hello {$appointment->user->name}. We need to RESCHEDULE your appointment for {$appointment->purpose}. Reason: {$request->reason}. Please log into the PPD Kluang Appointment System to select a new date.";
 
-        $this->sendWhatsAppNotification($appointment->user->phone, $message);
+        // $this->sendWhatsAppNotification($appointment->user->phone, $message);
 
         return redirect()->back()->with('success', 'Reschedule requested successfully!');
     }
