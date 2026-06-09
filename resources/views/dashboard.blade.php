@@ -133,7 +133,7 @@
                         <div class="p-3 bg-slate-100 rounded-lg text-slate-700">
                             <i class="fa-solid fa-check-double text-xl"></i>
                         </div>
-                        <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded-full">Closed</span>
+                        <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded-full">Completed</span>
                     </div>
                     <div class="mt-4">
                         <h3 class="text-3xl font-bold text-gray-900">{{ $stats['completed'] ?? 0 }}</h3>

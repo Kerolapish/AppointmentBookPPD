@@ -20,12 +20,14 @@ class DashboardController extends Controller
             'pending'   => Appointment::where('user_id', $userId)->where('status', 'pending')->count(),
             'confirmed' => Appointment::where('user_id', $userId)->whereIn('status', ['approved', 'confirmed'])->count(),
             'upcoming'  => Appointment::where('user_id', $userId)->where('date', '>=', $now->toDateString())->count(),
+            'completed' => Appointment::where('user_id', $userId)->whereIn('status', ['completed', 'closed'])->count(),
         ];
 
         $totalAppointments = Appointment::where('user_id', $userId)->count();
 
         // Fetch Appointments for the list
-        $upcomingAppointments = Appointment::where('user_id', $userId)
+        $upcomingAppointments = Appointment::with('admin')
+            ->where('user_id', $userId)
             ->where(function ($query) use ($now) {
                 $query->where('date', '>=', $now->toDateString())
                     ->orWhereIn('status', ['rejected', 'reschedule_requested']);
@@ -33,7 +35,6 @@ class DashboardController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        // Calendar Data (Fixed Table Missing Error)
         $fullyBookedDates = Appointment::select('date')
             ->where('date', '>=', $now->toDateString())
             ->groupBy('date')
@@ -51,7 +52,7 @@ class DashboardController extends Controller
             'blockedDates' => [],
             'fullyBookedDates' => $fullyBookedDates,
             'userBookedDates' => $userBookedDates,
-            'percentageChange' => 100 // Example static value
+            'percentageChange' => 100
         ]);
     }
 }

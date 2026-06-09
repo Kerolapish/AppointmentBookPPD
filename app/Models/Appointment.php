@@ -21,6 +21,7 @@ class Appointment extends Model
         'time',
         'status',
         'reschedule_reason',
+        'approved_by',
     ];
 
     public function user()
