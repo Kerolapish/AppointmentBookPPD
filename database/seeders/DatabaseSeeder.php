@@ -15,9 +15,9 @@ class DatabaseSeeder extends Seeder
     {
         User::create([
             'name' => 'Super Admin',
-            'email' => 'admin@ppdkluang.com', // You will use this to login
+            'email' => 'mkhairulhaf@gmail.com', // You will use this to login
             'password' => Hash::make('password123'), // You will use this password
-            'role' => 'super admin', // This triggers the middleware check
+            'role' => 'super_admin', // This triggers the middleware check
         ]);
     }
 }
