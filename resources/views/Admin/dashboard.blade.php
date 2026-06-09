@@ -59,7 +59,9 @@
                     <select name="status" id="status" onchange="document.getElementById('statusFilterForm').submit();"
                         class="rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm text-gray-700 bg-white px-3 py-1.5 border cursor-pointer">
                         <option value="pending" {{ $statusFilter === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="approved" {{ $statusFilter === 'approved' ? 'selected' : '' }}>Confirmed</option>
+
+                        <option value="confirmed" {{ $statusFilter === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+
                         <option value="rejected" {{ $statusFilter === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
                 </form>

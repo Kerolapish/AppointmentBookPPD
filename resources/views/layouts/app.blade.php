@@ -135,7 +135,8 @@
                                         class="group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">
                                         <div
                                             class="w-8 h-8 rounded-lg bg-gray-100 text-gray-500 flex items-center justify-center mr-3 group-hover:bg-blue-100 group-hover:text-blue-600">
-                                            <i class="fa-regular fa-user"></i></div>My Profile
+                                            <i class="fa-regular fa-user"></i>
+                                        </div>My Profile
                                     </a>
                                 </div>
                                 <div class="border-t border-gray-100 my-1 mx-2"></div>
@@ -146,7 +147,8 @@
                                             class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                             <div
                                                 class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-3 group-hover:bg-red-100 group-hover:text-red-600">
-                                                <i class="fa-solid fa-arrow-right-from-bracket"></i></div>Log Out
+                                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                            </div>Log Out
                                         </button>
                                     </form>
                                 </div>
@@ -231,11 +233,15 @@
                         <a href="{{ route('profile.show') }}"
                             class="p-2 text-gray-500 hover:text-blue-600 transition bg-white border border-gray-200 rounded-lg shadow-sm"><i
                                 class="fa-regular fa-user"></i></a>
-                        <form method="POST" action="{{ route('logout') }}" class="m-0 shadow-none inline">
+                        <form method="POST" action="{{ route('logout') }}" class="shadow-none m-0">
                             @csrf
                             <button type="submit"
-                                class="p-2 text-red-500 hover:text-red-700 transition bg-white border border-gray-200 rounded-lg shadow-sm"><i
-                                    class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                                class="w-full text-left group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-3 group-hover:bg-red-100 group-hover:text-red-600">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                </div>Log Out
+                            </button>
                         </form>
                     </div>
                 </div>
