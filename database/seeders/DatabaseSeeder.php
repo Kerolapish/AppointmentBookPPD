@@ -14,10 +14,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'name' => 'Admin',
+            'name' => 'Super Admin',
             'email' => 'admin@ppdkluang.com', // You will use this to login
             'password' => Hash::make('password123'), // You will use this password
-            'role' => 'admin', // This triggers the middleware check
+            'role' => 'super admin', // This triggers the middleware check
         ]);
     }
 }
