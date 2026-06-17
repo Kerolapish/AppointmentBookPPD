@@ -200,6 +200,9 @@
                                     @elseif($appointment->status == 'reschedule_requested')
                                         <span
                                             class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full">Action Required</span>
+                                    @elseif($appointment->status == 'rejected')
+                                        <span
+                                            class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1.5 rounded-full">Rejected</span>
                                     @else
                                         <span
                                             class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-full">{{ ucfirst($appointment->status) }}</span>

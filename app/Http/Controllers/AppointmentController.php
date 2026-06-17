@@ -27,6 +27,7 @@ class AppointmentController extends Controller
 
         // Find dates that are fully booked (5 or more appointments)
         $fullyBookedDates = Appointment::select(DB::raw('DATE(date) as appointment_date'))
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->groupBy('appointment_date')
             ->havingRaw('COUNT(*) >= 5')
             ->pluck('appointment_date')
@@ -37,6 +38,7 @@ class AppointmentController extends Controller
 
         // Find dates the CURRENT USER has already booked
         $userBookedDates = Appointment::where('user_id', Auth::id())
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->select(DB::raw('DATE(date) as appointment_date'))
             ->pluck('appointment_date')
             ->map(function ($date) {
@@ -45,15 +47,21 @@ class AppointmentController extends Controller
             ->toArray();
 
         // --- Weekly/Daily Availability Logic ---
-        $todayCount = Appointment::whereDate('date', Carbon::today())->count();
+        $todayCount = Appointment::whereDate('date', Carbon::today())
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->count();
         $todayLeft = max(0, $dailyLimit - $todayCount);
 
-        $tomorrowCount = Appointment::whereDate('date', Carbon::tomorrow())->count();
+        $tomorrowCount = Appointment::whereDate('date', Carbon::tomorrow())
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->count();
         $tomorrowLeft = max(0, $dailyLimit - $tomorrowCount);
 
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek   = Carbon::now()->endOfWeek();
-        $weekCount = Appointment::whereBetween('date', [$startOfWeek, $endOfWeek])->count();
+        $weekCount = Appointment::whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->count();
 
         if ($weekCount >= ($weeklyLimit * 0.9)) {
             $weekStatus = 'Fully Booked';
@@ -443,7 +451,7 @@ class AppointmentController extends Controller
         $date = $request->query('date');
 
         $bookedTimes = Appointment::where('date', $date)
-            ->whereIn('status', ['pending', 'approved', 'confirmed'])
+            ->whereNotIn('status', ['cancelled', 'rejected'])
             ->pluck('time')
             ->map(function ($time) {
                 return \Carbon\Carbon::parse($time)->format('H:i');

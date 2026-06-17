@@ -34,6 +34,13 @@
             border-color: #bfdbfe !important;
             /* Blue border */
         }
+
+        /* Available Dates */
+        .flatpickr-day.is-available {
+            background-color: #ffffff !important;
+            border-color: #d1d5db !important;
+            color: #374151 !important;
+        }
     </style>
 
     <div class="mb-6">
@@ -282,6 +289,14 @@
                 } else if (fullyBookedDates.includes(formattedDate)) {
                     dayElem.classList.add("is-booked");
                     dayElem.title = "Fully booked";
+                } else {
+                    let isWeekend = dayElem.dateObj.getDay() === 0 || dayElem.dateObj.getDay() === 6;
+                    let today = new Date();
+                    today.setHours(0,0,0,0);
+                    if (!isWeekend && dayElem.dateObj >= today) {
+                        dayElem.classList.add("is-available");
+                        dayElem.title = "Available";
+                    }
                 }
             },
             onChange: function(selectedDates, dateStr, instance) {

@@ -45,6 +45,22 @@ class DashboardController extends Controller
             ->where('date', '>=', $now->toDateString())
             ->pluck('date')->toArray();
 
+        $lastMonthAppointments = Appointment::where('user_id', $userId)
+            ->whereMonth('date', Carbon::now()->subMonth()->month)
+            ->whereYear('date', Carbon::now()->subMonth()->year)
+            ->count();
+
+        $thisMonthAppointments = Appointment::where('user_id', $userId)
+            ->whereMonth('date', Carbon::now()->month)
+            ->whereYear('date', Carbon::now()->year)
+            ->count();
+
+        if ($lastMonthAppointments > 0) {
+            $percentageChange = round((($thisMonthAppointments - $lastMonthAppointments) / $lastMonthAppointments) * 100);
+        } else {
+            $percentageChange = $thisMonthAppointments > 0 ? 100 : 0;
+        }
+
         return view('dashboard', [
             'stats' => $stats,
             'totalAppointments' => $totalAppointments,
@@ -52,7 +68,7 @@ class DashboardController extends Controller
             'blockedDates' => [],
             'fullyBookedDates' => $fullyBookedDates,
             'userBookedDates' => $userBookedDates,
-            'percentageChange' => 100
+            'percentageChange' => $percentageChange
         ]);
     }
 }
