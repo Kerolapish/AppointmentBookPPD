@@ -38,11 +38,11 @@
         {{-- Fully Responsive Navigation Bar with Mobile Drawer --}}
         <nav class="bg-white border-b border-gray-200 sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
+                <div class="flex justify-between items-center h-20">
 
                     {{-- ZONE 1: Left Brand Section --}}
                     <div class="flex-shrink-0 flex items-center gap-2 lg:gap-3">
-                        <img src="{{ asset('images/logoKPM.PNG') }}" alt="KPM Logo" class="h-11 w-auto object-contain">
+                        <img src="{{ asset('images/logoKPM.PNG') }}" alt="KPM Logo" class="h-16 w-auto object-contain">
                         <div class="leading-tight border-l-2 border-gray-200 pl-2 lg:pl-3">
                             <h1 class="font-bold text-gray-900 text-base lg:text-lg tracking-tight">PPD Kluang</h1>
                             <p class="text-[9px] text-gray-400 uppercase tracking-wider font-bold">Appointment System
