@@ -303,24 +303,60 @@ class AppointmentController extends Controller
         return redirect()->back()->with('success', 'Appointment rejected successfully.');
     }
 
-    // 8. Admin Action: Send Reschedule Instructions
-    public function reschedule(Request $request, $id)
+    // 8. User Action: Show Reschedule Form
+    public function reschedule($id)
     {
-        $request->validate([
-            'reason' => 'required|string'
-        ]);
+        $appointment = Appointment::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-        $appointment = Appointment::findOrFail($id);
+        return view('Appointments.reschedule', compact('appointment'));
+    }
 
-        $appointment->status = 'reschedule_requested';
-        $appointment->reschedule_reason = $request->reason;
-        $appointment->handled_by = auth()->id();
+    // 8b. User Action: Process Reschedule Submit
+    public function updateReschedule(Request $request, $id)
+    {
+        $appointment = Appointment::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        // If user provided a new date/time, use it, otherwise keep the old one
+        $newDate = $request->input('new_date') ?: $appointment->date;
+        $newTime = $request->input('new_time') ?: $appointment->time;
+
+        // Validation for new inputs
+        if ($request->filled('new_date')) {
+            $request->validate(['new_date' => 'date|after_or_equal:today']);
+        }
+        if ($request->filled('new_time') && $newDate === \Carbon\Carbon::today()->toDateString()) {
+            // Optional: validate time is in the future if it's today
+        }
+
+        // Security check for blocked dates
+        $isBlocked = OffDay::where('off_date', $newDate)->exists();
+        if ($isBlocked) {
+            return back()->withInput()->withErrors(['new_date' => 'Maaf, tarikh ini telah disekat oleh Admin (Cuti/Tiada di pejabat).']);
+        }
+
+        // Check daily slot limit if changing date
+        if ($newDate != $appointment->date) {
+            $dailyCount = Appointment::where('date', $newDate)
+                ->whereNotIn('status', ['cancelled', 'rejected'])
+                ->count();
+
+            if ($dailyCount >= 5) {
+                return back()->withInput()->withErrors(['new_date' => 'Sorry, all 5 appointment slots for this new date are fully booked.']);
+            }
+        }
+
+        // Apply changes
+        $appointment->date = $newDate;
+        $appointment->time = $newTime;
+        $appointment->status = 'pending';
+        $appointment->reschedule_reason = null;
         $appointment->save();
 
-        $msg = "NOTICE: Admin has requested that you reschedule your appointment. Reason: " . $request->reason . ". Please open your dashboard to choose a new slot.";
-        $this->sendNotifications($appointment, $msg);
-
-        return redirect()->back()->with('success', 'Reschedule request sent to user.');
+        return redirect()->route('my.appointments')->with('success', 'Appointment rescheduled successfully! Waiting for admin approval.');
     }
 
     // 9. User Action: Process Reschedule Update
