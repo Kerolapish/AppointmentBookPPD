@@ -28,21 +28,13 @@ class AppointmentApprovedMail_New extends Mailable
      */
     public function build()
     {
-        \Log::info('[DEBUG-ICS] AppointmentApprovedMail_New::build() WAS CALLED');
-
         $icsContent = $this->buildIcsContent($this->appointment);
 
-        \Log::info('[DEBUG-ICS] ICS content length: ' . strlen($icsContent));
-
-        $result = $this->subject('Appointment Confirmed - PPD Kluang')
+        return $this->subject('Appointment Confirmed - PPD Kluang')
                     ->view('emails.appointment_approved')
                     ->attachData($icsContent, 'invite.ics', [
                         'mime' => 'text/calendar; charset=UTF-8; method=REQUEST',
                     ]);
-
-        \Log::info('[DEBUG-ICS] rawAttachments count after attachData: ' . count($this->rawAttachments));
-
-        return $result;
     }
 
     /**

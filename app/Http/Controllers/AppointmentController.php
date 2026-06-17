@@ -215,8 +215,8 @@ class AppointmentController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        if ($appointment->status != 'pending') {
-            return back()->with('error', 'You can only cancel pending appointments.');
+        if (in_array($appointment->status, ['completed', 'cancelled', 'attended'])) {
+            return back()->with('error', 'You cannot cancel an appointment in this status.');
         }
 
         $appointment->update(['status' => 'cancelled']);

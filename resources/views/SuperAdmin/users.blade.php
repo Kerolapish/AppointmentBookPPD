@@ -15,11 +15,11 @@
             </div>
 
             <div class="w-full sm:w-auto">
-                <form action="{{ route('super_admin.users') }}" method="GET" class="relative flex items-center">
+                <form id="searchForm" action="{{ route('super_admin.users') }}" method="GET" class="relative flex items-center">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
                     </div>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search users..."
+                    <input type="text" id="searchInput" name="search" value="{{ request('search') }}" placeholder="Search users..."
                         class="block w-full sm:w-72 pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
                         autocomplete="off">
 
@@ -156,6 +156,26 @@
 
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
+        }
+
+        // --- AUTOMATIC LIVE SEARCH LOGIC ---
+        const searchInput = document.getElementById('searchInput');
+        const searchForm = document.getElementById('searchForm');
+        let debounceTimer;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    searchForm.submit();
+                }, 500);
+            });
+
+            // Keep cursor at end
+            const val = searchInput.value;
+            searchInput.value = '';
+            searchInput.focus();
+            searchInput.value = val;
         }
     </script>
 @endsection

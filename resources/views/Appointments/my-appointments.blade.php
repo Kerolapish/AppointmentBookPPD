@@ -92,20 +92,9 @@
 
                     <div class="w-full md:w-1/4 flex flex-col items-center md:items-end justify-center gap-2">
                         @if ($appt->status == 'pending')
-                            <span
-                                class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">Pending</span>
-                            <form method="POST" action="{{ route('appointments.cancel', $appt->id) }}"
-                                onsubmit="return confirm('Are you sure you want to cancel?');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit"
-                                    class="text-xs text-red-600 hover:text-red-800 font-semibold underline">Cancel</button>
-                            </form>
-                        @elseif($appt->status == 'approved')
-                            <span
-                                class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Approved</span>
-                            
-                            {{-- FIX ISSUE 4: Displaying the officer's name who processed the approval --}}
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">Pending</span>
+                        @elseif($appt->status == 'approved' || $appt->status == 'confirmed')
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Approved</span>
                             @if($appt->officer)
                                 <span class="text-[11px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
                                     <i class="fa-solid fa-user-check text-gray-400"></i> By: {{ $appt->officer->name }}
@@ -115,18 +104,27 @@
                                     <i class="fa-solid fa-user-check text-gray-400"></i> By Admin
                                 </span>
                             @endif
+                        @elseif($appt->status == 'rejected')
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">Rejected</span>
+                        @elseif($appt->status == 'reschedule_requested')
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">Reschedule Requested</span>
+                        @else
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">{{ ucfirst($appt->status) }}</span>
+                        @endif
 
+                        <div class="mt-2 flex gap-3 items-center">
                             <a href="{{ route('appointments.reschedule', $appt->id) }}"
-                                class="text-xs text-blue-600 hover:text-blue-800 font-bold mt-1 underline decoration-blue-300 hover:decoration-blue-800 underline-offset-4 transition">
+                                class="text-xs text-blue-600 hover:text-blue-800 font-bold underline decoration-blue-300 hover:decoration-blue-800 underline-offset-4 transition">
                                 Reschedule
                             </a>
-                        @elseif($appt->status == 'rejected')
-                            <span
-                                class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">Rejected</span>
-                        @else
-                            <span
-                                class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">{{ ucfirst($appt->status) }}</span>
-                        @endif
+                            <form method="POST" action="{{ route('appointments.cancel', $appt->id) }}"
+                                onsubmit="return confirm('Are you sure you want to cancel?');" class="m-0">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="text-xs text-red-600 hover:text-red-800 font-semibold underline">Cancel</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             @endforeach

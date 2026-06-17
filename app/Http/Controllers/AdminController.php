@@ -14,6 +14,7 @@ use Twilio\Rest\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AppointmentApprovedMail_New;
+use App\Mail\AppointmentRescheduleMail;
 
 class AdminController extends Controller
 {
@@ -30,13 +31,15 @@ class AdminController extends Controller
 
         // 2. Strict white-listed fallback structure: default to 'pending' if value is missing or modified
         $statusFilter = $request->input('status');
-        if (!in_array($statusFilter, ['pending', 'approved', 'rejected'])) {
+        if (!in_array($statusFilter, ['pending', 'approved', 'rejected', 'confirmed'])) {
             $statusFilter = 'pending';
         }
 
+        $dbStatus = $statusFilter === 'confirmed' ? 'approved' : $statusFilter;
+
         // 3. Pull matching paginated data bundles
         $appointments = Appointment::with('user')
-            ->where('status', $statusFilter)
+            ->where('status', $dbStatus)
             ->latest()
             ->paginate(5);
 
@@ -248,9 +251,14 @@ class AdminController extends Controller
             'reschedule_reason' => $request->reason
         ]);
 
-        $message = "Hello {$appointment->user->name}. We need to RESCHEDULE your appointment for {$appointment->purpose}. Reason: {$request->reason}. Please log into the PPD Kluang Appointment System to select a new date.";
-
-        // $this->sendWhatsAppNotification($appointment->user->phone, $message);
+        try {
+            if ($appointment->user && $appointment->user->email) {
+                Mail::to($appointment->user->email)->send(new AppointmentRescheduleMail($appointment));
+            }
+        } catch (\Exception $e) {
+            Log::error("Mail Delivery Failed during reschedule: " . $e->getMessage());
+            return redirect()->back()->with('warning', 'Reschedule requested, but email failed to send.');
+        }
 
         return redirect()->back()->with('success', 'Reschedule requested successfully!');
     }
