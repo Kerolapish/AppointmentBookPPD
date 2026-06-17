@@ -8,16 +8,7 @@
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div
-@extends('layouts.app')
 
-@section('content')
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">User Management</h2>
-        <p class="text-sm text-gray-500 mt-1">View and manage all registered users in the system.</p>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div
             class="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
             <div>
                 <h3 class="text-lg font-bold text-gray-800">All Users</h3>

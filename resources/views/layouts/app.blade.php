@@ -29,7 +29,7 @@
 <body class="antialiased text-gray-800 relative">
 
     {{-- Watermark Logo Background --}}
-    <div class="fixed inset-0 pointer-events-none opacity-[0.05] bg-center bg-no-repeat z-0"
+    <div class="fixed inset-0 pointer-events-none opacity-[0.15] bg-center bg-no-repeat z-0"
         style="background-image: url('{{ asset('images/logoPPD.png') }}'); background-size: 500px;">
     </div>
 
