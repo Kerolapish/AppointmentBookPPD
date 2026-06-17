@@ -16,21 +16,14 @@ class SuperAdminDashboardController extends Controller
         $totalUsers = \App\Models\User::count();
         $newUsersToday = \App\Models\User::whereDate('created_at', today())->count();
 
-        $totalAppointments = \App\Models\Appointment::count();
-        $pendingAppointments = \App\Models\Appointment::where('status', 'pending')->count();
-
-        // 2. Fetch the appointments 
-        $appointments = \App\Models\Appointment::orderBy('date', 'asc')
-            ->orderBy('time', 'asc')
-            ->paginate(15);
+        // 2. Fetch new users (newly registered)
+        $newUsers = \App\Models\User::orderBy('created_at', 'desc')->paginate(15);
 
         // 3. Pass EVERYTHING to the view
         return view('SuperAdmin.dashboard', compact(
             'totalUsers',
             'newUsersToday',
-            'totalAppointments',
-            'pendingAppointments',
-            'appointments'
+            'newUsers'
         ));
     }
 

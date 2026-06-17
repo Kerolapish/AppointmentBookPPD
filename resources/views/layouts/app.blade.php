@@ -57,10 +57,7 @@
                             {{-- Super Admin Desktop Links --}}
                             <a href="{{ route('super_admin.dashboard') }}"
                                 class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition whitespace-nowrap {{ request()->routeIs('super_admin.dashboard') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-50' }}"><i
-                                    class="fa-solid fa-crown"></i> Master Dashboard</a>
-                            <a href="{{ route('super_admin.reports') }}"
-                                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition whitespace-nowrap {{ request()->routeIs('super_admin.reports') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-50' }}"><i
-                                    class="fa-solid fa-chart-pie"></i> Reports</a>
+                                    class="fa-solid fa-gauge"></i> Dashboard</a>
                             <a href="{{ route('super_admin.users') }}"
                                 class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition whitespace-nowrap {{ request()->routeIs('super_admin.users') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-50' }}"><i
                                     class="fa-solid fa-users"></i> Users</a>
@@ -174,10 +171,7 @@
                     @if (Auth::check() && Auth::user()->role === 'super_admin')
                         <a href="{{ route('super_admin.dashboard') }}"
                             class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('super_admin.dashboard') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50' }}"><i
-                                class="fa-solid fa-crown w-5 text-center"></i> Master Dashboard</a>
-                        <a href="{{ route('super_admin.reports') }}"
-                            class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('super_admin.reports') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50' }}"><i
-                                class="fa-solid fa-chart-pie w-5 text-center"></i> Reports</a>
+                                class="fa-solid fa-gauge w-5 text-center"></i> Dashboard</a>
                         <a href="{{ route('super_admin.users') }}"
                             class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('super_admin.users') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50' }}"><i
                                 class="fa-solid fa-users w-5 text-center"></i> Users</a>

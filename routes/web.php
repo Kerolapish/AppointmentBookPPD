@@ -77,7 +77,6 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_a
     Route::post('/availability', [SuperAdminDashboardController::class, 'storeBlockedDate'])->name('availability.store');
     Route::delete('/availability/{id}', [SuperAdminDashboardController::class, 'destroyBlockedDate'])->name('availability.destroy');
     Route::put('/appointments/{id}/reschedule', [SuperAdminDashboardController::class, 'reschedule'])->name('appointments.reschedule');
-    Route::get('/reports', [SuperAdminDashboardController::class, 'reports'])->name('reports');
     Route::get('/appointments/export', [SuperAdminDashboardController::class, 'exportAppointments'])->name('appointments.export');
 });
 
