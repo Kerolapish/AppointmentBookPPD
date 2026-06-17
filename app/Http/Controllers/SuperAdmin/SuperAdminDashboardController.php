@@ -10,14 +10,19 @@ use App\Models\BlockedDate;
 
 class SuperAdminDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         // 1. Calculate the Analytics
         $totalUsers = \App\Models\User::count();
         $newUsersToday = \App\Models\User::whereDate('created_at', today())->count();
 
-        // 2. Fetch new users (newly registered)
-        $newUsers = \App\Models\User::orderBy('created_at', 'desc')->paginate(15);
+        // 2. Fetch new users (newly registered), applying search if exists
+        $newUsers = \App\Models\User::when($search, function ($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+        })->orderBy('created_at', 'desc')->paginate(15)->appends(['search' => $search]);
 
         // 3. Pass EVERYTHING to the view
         return view('SuperAdmin.dashboard', compact(

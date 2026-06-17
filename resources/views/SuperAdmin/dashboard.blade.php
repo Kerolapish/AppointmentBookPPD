@@ -130,8 +130,8 @@
         @endif
     </div>
 
-
-
+    {{-- JavaScript --}}
+    <script>
         // --- AUTOMATIC LIVE SEARCH LOGIC ---
         const searchInput = document.getElementById('searchInput');
         const searchForm = document.getElementById('searchForm');
