@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\AppointmentApprovedMail_New;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Twilio\Rest\Client;
 
 class AppointmentController extends Controller
 {
@@ -286,6 +287,10 @@ class AppointmentController extends Controller
                     ->cc(['mkhairulhaf@gmail.com']) // CHANGE THESE FOR YOUR DEMO
                     ->send(new AppointmentApprovedMail_New($appointment));
             }
+            
+            // Trigger WhatsApp via Twilio
+            $msg = "STATUS UPDATE: Your PPD Kluang appointment on " . $appointment->date . " at " . $appointment->time . " has been APPROVED.";
+            $this->sendNotifications($appointment, $msg);
         } catch (\Exception $e) {
             \Log::error("Mail Delivery Failed during approval: " . $e->getMessage());
             return redirect()->back()->with('warning', 'Appointment status updated to Approved, but notification email could not be sent.');
@@ -482,13 +487,19 @@ class AppointmentController extends Controller
                     $cleanPhone = '60' . substr($cleanPhone, 1);
                 }
 
-                Http::timeout(5)->post('https://api.yourwhatsappgateway.com/send', [
-                    'api_key'   => config('services.whatsapp.key'),
-                    'recipient' => $cleanPhone,
-                    'message'   => $messageBody
+                $sid    = env('TWILIO_SID');
+                $token  = env('TWILIO_AUTH_TOKEN');
+                $from   = env('TWILIO_WHATSAPP_FROM');
+                $twilio = new Client($sid, $token);
+
+                $to = "whatsapp:+" . $cleanPhone;
+
+                $twilio->messages->create($to, [
+                    "from" => $from,
+                    "body" => $messageBody
                 ]);
 
-                \Log::info("WhatsApp dispatch triggered successfully for: " . $cleanPhone);
+                \Log::info("Twilio WhatsApp dispatch triggered successfully for: " . $to);
             }
         } catch (\Exception $e) {
             \Log::error("Production WhatsApp Gateway Failure: " . $e->getMessage());

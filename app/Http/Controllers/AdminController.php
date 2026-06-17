@@ -255,6 +255,11 @@ class AdminController extends Controller
             if ($appointment->user && $appointment->user->email) {
                 Mail::to($appointment->user->email)->send(new AppointmentRescheduleMail($appointment));
             }
+            
+            // Trigger WhatsApp via Twilio
+            $msg = "STATUS UPDATE: Your PPD Kluang appointment on " . $appointment->date . " at " . $appointment->time . " has been requested to be RESCHEDULED. Reason: " . $request->reason;
+            $this->sendWhatsAppNotification($appointment->user->phone, $msg);
+            
         } catch (\Exception $e) {
             Log::error("Mail Delivery Failed during reschedule: " . $e->getMessage());
             return redirect()->back()->with('warning', 'Reschedule requested, but email failed to send.');
@@ -269,11 +274,7 @@ class AdminController extends Controller
 
     private function sendWhatsAppNotification($phone, $messageBody)
     {
-        // 🚨 TEMPORARILY DISABLED FOR TOMORROW'S DEMO/TESTING
-        Log::info('WhatsApp notification skipped intentionally (Temporarily Commented Out)');
-        return;
-
-        /* if (!$phone) {
+        if (!$phone) {
             Log::warning('WhatsApp skipped: user has no recorded phone number.');
             return;
         }
@@ -299,7 +300,6 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             Log::error('WhatsApp Error: ' . $e->getMessage());
         }
-        */
     }
 
     public function getBookedTimes(Request $request)
