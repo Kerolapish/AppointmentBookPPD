@@ -52,7 +52,7 @@ class AppointmentApprovedMail_New extends Mailable
     {
         return [
             Attachment::fromData(fn() => $this->buildIcsContent($this->appointment), 'invite.ics')
-                ->withMime('text/calendar'),
+                ->withMime('text/calendar; charset=UTF-8; method=REQUEST'),
         ];
     }
 
