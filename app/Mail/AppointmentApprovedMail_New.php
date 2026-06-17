@@ -4,11 +4,8 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Mail\Mailables\Attachment; // Added this
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon; // Added this
+use Carbon\Carbon;
 
 class AppointmentApprovedMail_New extends Mailable
 {
@@ -21,39 +18,23 @@ class AppointmentApprovedMail_New extends Mailable
      */
     public function __construct($appointment)
     {
-        // Pass the appointment model instance to the mail view
         $this->appointment = $appointment;
     }
 
     /**
-     * Get the message envelope.
+     * Build the message using the direct attachData approach.
+     * This bypasses the Attachment::fromData abstraction layer
+     * for maximum compatibility with all server environments.
      */
-    public function envelope(): Envelope
+    public function build()
     {
-        return new Envelope(
-            subject: 'Appointment Confirmed - PPD Kluang',
-        );
-    }
+        $icsContent = $this->buildIcsContent($this->appointment);
 
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'emails.appointment_approved',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     */
-    public function attachments(): array
-    {
-        return [
-            Attachment::fromData(fn() => $this->buildIcsContent($this->appointment), 'invite.ics')
-                ->withMime('text/calendar; charset=UTF-8; method=REQUEST'),
-        ];
+        return $this->subject('Appointment Confirmed - PPD Kluang')
+                    ->view('emails.appointment_approved')
+                    ->attachData($icsContent, 'invite.ics', [
+                        'mime' => 'text/calendar; charset=UTF-8; method=REQUEST',
+                    ]);
     }
 
     /**
