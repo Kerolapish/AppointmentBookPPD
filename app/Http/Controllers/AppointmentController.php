@@ -266,7 +266,10 @@ class AppointmentController extends Controller
 
         try {
             if ($appointment->user && $appointment->user->email) {
-                Mail::to($appointment->user->email)->send(new AppointmentApprovedMail($appointment));
+                // UPDATE: Added CC functionality for Super Admin and Admin emails
+                Mail::to($appointment->user->email)
+                    ->cc(['admin@yourdomain.com', 'superadmin@yourdomain.com']) // CHANGE THESE FOR YOUR DEMO
+                    ->send(new AppointmentApprovedMail($appointment));
             }
         } catch (\Exception $e) {
             \Log::error("Mail Delivery Failed during approval: " . $e->getMessage());
