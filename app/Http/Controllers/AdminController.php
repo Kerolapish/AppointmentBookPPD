@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Twilio\Rest\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AppointmentApprovedMail;
 
 class AdminController extends Controller
 {
@@ -82,7 +84,6 @@ class AdminController extends Controller
         $approved = (clone $query)->where('status', 'approved')->orderBy('date', 'asc')->get();
         $rejected = (clone $query)->where('status', 'rejected')->orderBy('date', 'desc')->get();
 
-        // FIXED: Capitalized "Admin" to match your Linux server directory
         return view('Admin.requests', compact('pending', 'approved', 'rejected'));
     }
 
@@ -115,7 +116,6 @@ class AdminController extends Controller
 
         $appointments = (clone $query)->orderBy('date', 'desc')->get();
 
-        // FIXED: Capitalized "Admin" to match your Linux server directory
         return view('Admin.reports', compact('totalAppointments', 'pending', 'approved', 'rejected', 'appointments', 'filter', 'startDate', 'endDate'));
     }
 
@@ -154,7 +154,6 @@ class AdminController extends Controller
             'endDate'
         );
 
-        // FIXED: Capitalized "Admin" to match your Linux server directory
         $pdf = Pdf::loadView('Admin.report_pdf', $data);
         return $pdf->stream('report.pdf');
     }
@@ -175,7 +174,6 @@ class AdminController extends Controller
         $admins = (clone $query)->where('role', 'admin')->orderBy('created_at', 'desc')->get();
         $users  = (clone $query)->where('role', 'user')->orderBy('created_at', 'desc')->get();
 
-        // FIXED: Capitalized "Admin" to match your Linux server directory
         return view('Admin.users', compact('admins', 'users'));
     }
 
@@ -187,25 +185,27 @@ class AdminController extends Controller
     {
         $appointment = Appointment::findOrFail($id);
 
-        // FIXED: Changed 'handled_by' to 'approved_by' to match your database
+        // Update database
         $appointment->status = 'approved';
         $appointment->approved_by = auth()->id();
         $appointment->save();
 
-        // FIXED: Added safety fallback just in case the user data is missing
-        $name = $appointment->user->name ?? 'Customer';
-        $phone = $appointment->user->phone ?? null;
+        // Send the Email with Calendar Invite & CC the admins
+        try {
+            if ($appointment->user && $appointment->user->email) {
+                // IMPORTANT: Change these CC emails for your real demo
+                Mail::to($appointment->user->email)
+                    ->cc(['admin@yourdomain.com', 'superadmin@yourdomain.com'])
+                    ->send(new AppointmentApprovedMail($appointment));
+            }
+        } catch (\Exception $e) {
+            Log::error("Mail Delivery Failed: " . $e->getMessage());
+            return redirect()->back()->with('warning', 'Appointment approved, but email notification failed to send.');
+        }
 
-        $dateFormatted = \Carbon\Carbon::parse($appointment->date)->format('d M Y');
-        $message = "Hello {$name}! Great news, your appointment for {$appointment->purpose} on {$dateFormatted} has been APPROVED. See you then!";
-
-        // Only send WhatsApp if a phone number exists
-        //if ($phone) {
-        //   $this->sendWhatsAppNotification($phone, $message);
-        //}
-
-        return redirect()->back()->with('success', 'Appointment approved!');
+        return redirect()->back()->with('success', 'Appointment approved and Calendar Invite sent!');
     }
+
     public function reject(Request $request, $id)
     {
         $appointment = Appointment::findOrFail($id);
