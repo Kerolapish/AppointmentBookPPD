@@ -29,6 +29,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        if ($request->boolean('remember')) {
+            \Illuminate\Support\Facades\Cookie::queue('remember_email', $request->email, 60 * 24 * 30); // 30 days
+        } else {
+            \Illuminate\Support\Facades\Cookie::queue(\Illuminate\Support\Facades\Cookie::forget('remember_email'));
+        }
+
         // CUSTOM REDIRECT LOGIC
         $user = Auth::user();
 

@@ -281,9 +281,13 @@
                 let formattedDate = parseLocalDateString(dayElem.dateObj);
                 let today = new Date();
                 today.setHours(0,0,0,0);
+                
+                let maxDate = new Date();
+                maxDate.setDate(today.getDate() + 30);
+                maxDate.setHours(23,59,59,999);
 
-                // Only colorize dates that are within the active booking window (today and future)
-                if (dayElem.dateObj >= today) {
+                // Only colorize dates that are within the active booking window (today to +30 days)
+                if (dayElem.dateObj >= today && dayElem.dateObj <= maxDate) {
                     if (userBookedDates.includes(formattedDate)) {
                         dayElem.classList.add("is-user-booked");
                         dayElem.title = "You already have an appointment on this date!";

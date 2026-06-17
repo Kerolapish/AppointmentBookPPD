@@ -33,7 +33,7 @@
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                                 <i class="fa-regular fa-envelope"></i>
                             </span>
-                            <input type="email" name="email" value="{{ old('email') }}" required autofocus
+                            <input type="email" name="email" value="{{ old('email', request()->cookie('remember_email')) }}" required autofocus
                                 class="w-full border border-gray-300 rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition text-sm @error('email') border-red-500 @enderror"
                                 placeholder="your.email@example.com">
                         </div>
@@ -64,7 +64,7 @@
 
                     <div class="flex justify-between items-center mb-6">
                         <label class="flex items-center text-sm text-gray-600 cursor-pointer">
-                            <input type="checkbox" name="remember"
+                            <input type="checkbox" name="remember" {{ request()->hasCookie('remember_email') ? 'checked' : '' }}
                                 class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 mr-2">
                             Remember me
                         </label>
