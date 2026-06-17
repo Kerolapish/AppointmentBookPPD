@@ -279,23 +279,26 @@
             ],
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 let formattedDate = parseLocalDateString(dayElem.dateObj);
+                let today = new Date();
+                today.setHours(0,0,0,0);
 
-                if (userBookedDates.includes(formattedDate)) {
-                    dayElem.classList.add("is-user-booked");
-                    dayElem.title = "You already have an appointment on this date!";
-                } else if (blockedDates.includes(formattedDate)) {
-                    dayElem.classList.add("is-blocked");
-                    dayElem.title = "Office closed";
-                } else if (fullyBookedDates.includes(formattedDate)) {
-                    dayElem.classList.add("is-booked");
-                    dayElem.title = "Fully booked";
-                } else {
-                    let isWeekend = dayElem.dateObj.getDay() === 0 || dayElem.dateObj.getDay() === 6;
-                    let today = new Date();
-                    today.setHours(0,0,0,0);
-                    if (!isWeekend && dayElem.dateObj >= today) {
-                        dayElem.classList.add("is-available");
-                        dayElem.title = "Available";
+                // Only colorize dates that are within the active booking window (today and future)
+                if (dayElem.dateObj >= today) {
+                    if (userBookedDates.includes(formattedDate)) {
+                        dayElem.classList.add("is-user-booked");
+                        dayElem.title = "You already have an appointment on this date!";
+                    } else if (blockedDates.includes(formattedDate)) {
+                        dayElem.classList.add("is-blocked");
+                        dayElem.title = "Office closed";
+                    } else if (fullyBookedDates.includes(formattedDate)) {
+                        dayElem.classList.add("is-booked");
+                        dayElem.title = "Fully booked";
+                    } else {
+                        let isWeekend = dayElem.dateObj.getDay() === 0 || dayElem.dateObj.getDay() === 6;
+                        if (!isWeekend) {
+                            dayElem.classList.add("is-available");
+                            dayElem.title = "Available";
+                        }
                     }
                 }
             },
@@ -342,7 +345,6 @@
 
                     if (isBooked) {
                         option.disabled = true;
-                        option.text += ' (Fully Booked)';
                         option.classList.add('text-gray-400', 'bg-gray-100');
                     }
                     timeSelect.appendChild(option);
