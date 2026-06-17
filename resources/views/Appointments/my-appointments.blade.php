@@ -95,17 +95,18 @@
                             <span class="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-200">Pending</span>
                         @elseif($appt->status == 'approved' || $appt->status == 'confirmed')
                             <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">Approved</span>
-                            @if($appt->officer)
+                            @if($appt->admin)
                                 <span class="text-[11px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
-                                    <i class="fa-solid fa-user-check text-gray-400"></i> By: {{ $appt->officer->name }}
-                                </span>
-                            @elseif($appt->handled_by)
-                                <span class="text-[11px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
-                                    <i class="fa-solid fa-user-check text-gray-400"></i> By Admin
+                                    <i class="fa-solid fa-user-check text-gray-400"></i> By: {{ $appt->admin->name }}
                                 </span>
                             @endif
                         @elseif($appt->status == 'rejected')
                             <span class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">Rejected</span>
+                            @if($appt->admin)
+                                <span class="text-[11px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
+                                    <i class="fa-solid fa-user-check text-gray-400"></i> By: {{ $appt->admin->name }}
+                                </span>
+                            @endif
                         @elseif($appt->status == 'reschedule_requested')
                             <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">Reschedule Requested</span>
                         @else
@@ -163,8 +164,8 @@
                     <div class="w-full md:w-1/4 flex flex-col items-center md:items-end justify-center gap-1">
                         <span
                             class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-600 border border-gray-300">{{ ucfirst($appt->status) }}</span>
-                        @if($appt->status == 'completed' && $appt->officer)
-                            <span class="text-[10px] text-gray-400 mt-0.5">Handled by: {{ $appt->officer->name }}</span>
+                        @if($appt->status == 'completed' && $appt->admin)
+                            <span class="text-[10px] text-gray-400 mt-0.5">Handled by: {{ $appt->admin->name }}</span>
                         @endif
                     </div>
                 </div>

@@ -179,11 +179,12 @@
                                             <span><i class="fa-solid fa-location-dot mr-1"></i>
                                                 {{ $appointment->location }}</span>
                                         </div>
-                                        @if ($appointment->status === 'approved' && $appointment->admin)
+                                        @if (in_array($appointment->status, ['approved', 'rejected']) && $appointment->admin)
                                             <div
-                                                class="mt-2 flex items-center gap-2 text-xs font-medium text-green-700 bg-green-50 w-fit px-2 py-1 rounded-md border border-green-100">
+                                                class="mt-2 flex items-center gap-2 text-xs font-medium w-fit px-2 py-1 rounded-md border 
+                                                {{ $appointment->status === 'approved' ? 'text-green-700 bg-green-50 border-green-100' : 'text-red-700 bg-red-50 border-red-100' }}">
                                                 <i class="fa-solid fa-user-check"></i>
-                                                <span>Approved by: {{ $appointment->admin->name }}</span>
+                                                <span>{{ ucfirst($appointment->status) }} by: {{ $appointment->admin->name }}</span>
                                             </div>
                                         @endif
                                     </div>

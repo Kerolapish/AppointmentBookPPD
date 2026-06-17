@@ -268,7 +268,7 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::with('user')->findOrFail($id);
         $appointment->status = 'approved';
-        $appointment->handled_by = auth()->id(); // Log the user id of the administrator who approved this item
+        $appointment->approved_by = auth()->id(); // Log the user id of the administrator who approved this item
         $appointment->save();
 
         try {
@@ -301,7 +301,7 @@ class AppointmentController extends Controller
 
         $appointment->status = 'rejected';
         $appointment->reject_reason = $reason;
-        $appointment->handled_by = auth()->id();
+        $appointment->approved_by = auth()->id();
         $appointment->save();
 
         $msg = "STATUS UPDATE: Your PPD Kluang appointment status has been rejected. Reason: " . $reason;
