@@ -21,8 +21,10 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
                 
                 <div class="relative inline-block mb-4">
-                    <div class="w-24 h-24 bg-emerald-500 text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto">
-                        {{ substr(Auth::user()->name, 0, 2) }}
+                    <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg mx-auto bg-gray-200">
+                        <img class="h-full w-full object-cover"
+                             src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=0D8ABC&color=fff&bold=true&size=256"
+                             alt="{{ Auth::user()->name }}">
                     </div>
                 </div>
 
