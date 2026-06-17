@@ -220,6 +220,13 @@ class AppointmentController extends Controller
         }
 
         $appointment->update(['status' => 'cancelled']);
+
+        try {
+            \Illuminate\Support\Facades\Mail::to('mkhairulhaf@gmail.com')->send(new \App\Mail\AdminNotificationMail($appointment, 'cancelled'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Admin Notification Mail Failed: ' . $e->getMessage());
+        }
+
         return back()->with('success', 'Appointment cancelled successfully.');
     }
 
@@ -332,6 +339,11 @@ class AppointmentController extends Controller
             // Optional: validate time is in the future if it's today
         }
 
+        // When user wants to reschedule before approved, they can't pick same day
+        if ($appointment->status === 'pending' && $newDate === $appointment->date) {
+            return back()->withInput()->withErrors(['new_date' => 'You cannot reschedule to the same day before the appointment is approved. Please select a different date.']);
+        }
+
         // Security check for blocked dates
         $isBlocked = OffDay::where('off_date', $newDate)->exists();
         if ($isBlocked) {
@@ -350,11 +362,18 @@ class AppointmentController extends Controller
         }
 
         // Apply changes
+        $oldStatus = $appointment->status;
         $appointment->date = $newDate;
         $appointment->time = $newTime;
         $appointment->status = 'pending';
         $appointment->reschedule_reason = null;
         $appointment->save();
+
+        try {
+            \Illuminate\Support\Facades\Mail::to('mkhairulhaf@gmail.com')->send(new \App\Mail\AdminNotificationMail($appointment, "rescheduled (was {$oldStatus})"));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Admin Notification Mail Failed: ' . $e->getMessage());
+        }
 
         return redirect()->route('my.appointments')->with('success', 'Appointment rescheduled successfully! Waiting for admin approval.');
     }
