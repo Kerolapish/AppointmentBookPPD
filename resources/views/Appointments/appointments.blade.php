@@ -343,7 +343,7 @@
                     if (isBooked) {
                         option.disabled = true;
                         option.text += ' (Fully Booked)';
-                        option.classList.add('text-red-400');
+                        option.classList.add('text-gray-400', 'bg-gray-100');
                     }
                     timeSelect.appendChild(option);
                 });
