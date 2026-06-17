@@ -112,9 +112,9 @@
                             <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">{{ ucfirst($appt->status) }}</span>
                         @endif
 
-                        <div class="mt-2 flex gap-3 items-center">
+                        <div class="mt-2 flex gap-2 items-center">
                             <a href="{{ route('appointments.reschedule', $appt->id) }}"
-                                class="text-xs text-blue-600 hover:text-blue-800 font-bold underline decoration-blue-300 hover:decoration-blue-800 underline-offset-4 transition">
+                                class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center">
                                 Reschedule
                             </a>
                             <form method="POST" action="{{ route('appointments.cancel', $appt->id) }}"
@@ -122,7 +122,7 @@
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit"
-                                    class="text-xs text-red-600 hover:text-red-800 font-semibold underline">Cancel</button>
+                                    class="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-center w-full">Cancel</button>
                             </form>
                         </div>
                     </div>
