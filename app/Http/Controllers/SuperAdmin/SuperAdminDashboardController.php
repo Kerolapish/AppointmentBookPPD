@@ -58,6 +58,25 @@ class SuperAdminDashboardController extends Controller
         return view('SuperAdmin.users', compact('users', 'search'));
     }
 
+    // NEW METHOD: Create New User
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'role' => 'admin', // Hardcoded as requested
+        ]);
+
+        return redirect()->route('super_admin.users')->with('success', 'Admin account created successfully!');
+    }
+
     // NEW METHOD: Update User Data
     public function updateUser(Request $request, $id)
     {

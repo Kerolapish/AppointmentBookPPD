@@ -70,6 +70,7 @@ Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_a
     Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
     Route::delete('/appointments/{id}', [SuperAdminDashboardController::class, 'destroy'])->name('appointments.destroy');
     Route::get('/users', [SuperAdminDashboardController::class, 'users'])->name('users');
+    Route::post('/users', [SuperAdminDashboardController::class, 'storeUser'])->name('users.store');
     Route::put('/users/{id}', [SuperAdminDashboardController::class, 'updateUser'])->name('users.update');
 
     // Availability & Schedule Settings

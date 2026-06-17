@@ -8,13 +8,26 @@
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div
+@extends('layouts.app')
+
+@section('content')
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">User Management</h2>
+        <p class="text-sm text-gray-500 mt-1">View and manage all registered users in the system.</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div
             class="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
             <div>
                 <h3 class="text-lg font-bold text-gray-800">All Users</h3>
                 <p class="text-sm text-gray-500">{{ $users->total() }} total users registered.</p>
             </div>
 
-            <div class="w-full sm:w-auto">
+            <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+                <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add New Admin
+                </button>
                 <form id="searchForm" action="{{ route('super_admin.users') }}" method="GET" class="relative flex items-center">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -138,6 +151,57 @@
         </div>
     </div>
 
+    {{-- Create Admin Modal --}}
+    <div id="createModal"
+        class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+
+            <button onclick="closeCreateModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-blue-600"></i> Add New Admin
+            </h3>
+
+            <form action="{{ route('super_admin.users.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="role" value="admin">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" name="name" required
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" name="email" required
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temporary Password</label>
+                        <input type="password" name="password" required minlength="8"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeCreateModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 shadow-sm transition-colors">
+                        Create Admin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openEditModal(id, name, email, role) {
             // Set the form action URL dynamically
@@ -176,6 +240,14 @@
             searchInput.value = '';
             searchInput.focus();
             searchInput.value = val;
+        }
+
+        function openCreateModal() {
+            document.getElementById('createModal').classList.remove('hidden');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.add('hidden');
         }
     </script>
 @endsection

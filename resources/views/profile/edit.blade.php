@@ -49,19 +49,21 @@
                     @error('phone') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
-                <div>
-                    <label for="ips_name" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">IPS Name</label>
-                    <input type="text" name="ips_name" id="ips_name" value="{{ old('ips_name', $user->ips_name) }}" placeholder="Institution Name"
-                           class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                    @error('ips_name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                </div>
+                @if (Auth::user()->role === 'user')
+                    <div>
+                        <label for="ips_name" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">IPS Name</label>
+                        <input type="text" name="ips_name" id="ips_name" value="{{ old('ips_name', $user->ips_name) }}" placeholder="Institution Name"
+                               class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        @error('ips_name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
 
-                <div class="md:col-span-2">
-                    <label for="address" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Address</label>
-                    <textarea name="address" id="address" rows="3" placeholder="Enter your full address"
-                              class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none">{{ old('address', $user->address) }}</textarea>
-                    @error('address') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                </div>
+                    <div class="md:col-span-2">
+                        <label for="address" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Address</label>
+                        <textarea name="address" id="address" rows="3" placeholder="Enter your full address"
+                                  class="w-full bg-white text-gray-900 border border-gray-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none">{{ old('address', $user->address) }}</textarea>
+                        @error('address') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+                @endif
             </div>
 
             <div class="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">

@@ -81,27 +81,29 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Institusi Pendidikan Swasta (IPS)</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                                <i class="fa-solid fa-school"></i>
+                    @if (Auth::user()->role === 'user')
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Institusi Pendidikan Swasta (IPS)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-school"></i>
+                                </div>
+                                <input type="text" value="{{ Auth::user()->ips_name ?? 'Not provided' }}" readonly 
+                                       class="w-full bg-gray-50 text-gray-700 border border-gray-200 rounded-lg py-2.5 pl-10 text-sm cursor-default focus:ring-0 focus:border-gray-200">
                             </div>
-                            <input type="text" value="{{ Auth::user()->ips_name ?? 'Not provided' }}" readonly 
-                                   class="w-full bg-gray-50 text-gray-700 border border-gray-200 rounded-lg py-2.5 pl-10 text-sm cursor-default focus:ring-0 focus:border-gray-200">
                         </div>
-                    </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Address</label>
-                        <div class="relative">
-                            <div class="absolute top-3 left-3 pointer-events-none text-gray-400">
-                                <i class="fa-solid fa-location-dot"></i>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Address</label>
+                            <div class="relative">
+                                <div class="absolute top-3 left-3 pointer-events-none text-gray-400">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <textarea readonly rows="2"
+                                          class="w-full bg-gray-50 text-gray-700 border border-gray-200 rounded-lg py-2.5 pl-10 text-sm cursor-default focus:ring-0 focus:border-gray-200 resize-none">{{ Auth::user()->address ?? 'No address provided' }}</textarea>
                             </div>
-                            <textarea readonly rows="2"
-                                      class="w-full bg-gray-50 text-gray-700 border border-gray-200 rounded-lg py-2.5 pl-10 text-sm cursor-default focus:ring-0 focus:border-gray-200 resize-none">{{ Auth::user()->address ?? 'No address provided' }}</textarea>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
 
