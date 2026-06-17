@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\AppointmentApprovedMail;
+use App\Mail\AppointmentApprovedMail_New;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
@@ -268,8 +268,8 @@ class AppointmentController extends Controller
             if ($appointment->user && $appointment->user->email) {
                 // UPDATE: Added CC functionality for Super Admin and Admin emails
                 Mail::to($appointment->user->email)
-                    ->cc(['admin@yourdomain.com', 'superadmin@yourdomain.com']) // CHANGE THESE FOR YOUR DEMO
-                    ->send(new AppointmentApprovedMail($appointment));
+                    ->cc(['mkhairulhaf@gmail.com']) // CHANGE THESE FOR YOUR DEMO
+                    ->send(new AppointmentApprovedMail_New($appointment));
             }
         } catch (\Exception $e) {
             \Log::error("Mail Delivery Failed during approval: " . $e->getMessage());

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 use Twilio\Rest\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\AppointmentApprovedMail;
+use App\Mail\AppointmentApprovedMail_New;
 
 class AdminController extends Controller
 {
@@ -196,7 +196,7 @@ class AdminController extends Controller
                 // IMPORTANT: Change these CC emails for your real demo
                 Mail::to($appointment->user->email)
                     ->cc(['admin@yourdomain.com', 'superadmin@yourdomain.com'])
-                    ->send(new AppointmentApprovedMail($appointment));
+                    ->send(new AppointmentApprovedMail_New($appointment));
             }
         } catch (\Exception $e) {
             Log::error("Mail Delivery Failed: " . $e->getMessage());
