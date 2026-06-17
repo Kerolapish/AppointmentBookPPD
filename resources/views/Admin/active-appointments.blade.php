@@ -4,7 +4,7 @@
     <div class="p-6 max-w-7xl mx-auto">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Active Approved Appointments</h1>
+                <h1 class="text-2xl font-bold text-gray-900">Active Bookings</h1>
                 <p class="text-sm text-gray-500 mt-1">Manage current ongoing schedules and close them when finished.</p>
             </div>
 
@@ -59,7 +59,7 @@
                                         @method('PATCH')
                                         <button type="submit"
                                             class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-sm transition-colors">
-                                            <i class="fa-solid fa-check-double"></i> Complete & Close
+                                            Complete & Close
                                         </button>
                                     </form>
                                 </td>

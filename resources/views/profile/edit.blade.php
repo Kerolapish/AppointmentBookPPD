@@ -117,5 +117,32 @@
             </div>
         </form>
     </div>
+
+    <div class="mt-8 bg-red-50 rounded-xl shadow-sm border border-red-100 p-8">
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-red-800">Danger Zone</h2>
+            <p class="text-red-600 text-sm">Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.</p>
+        </div>
+
+        <form method="post" action="{{ route('profile.destroy') }}" class="space-y-6" onsubmit="return confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.');">
+            @csrf
+            @method('delete')
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <label for="delete_account_password" class="block text-xs font-bold text-red-800 uppercase tracking-wide mb-2">Confirm Password to Delete</label>
+                    <input type="password" name="password" id="delete_account_password" placeholder="Password"
+                           class="w-full bg-white text-gray-900 border border-red-300 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition">
+                    @error('password', 'userDeletion') <span class="text-red-600 text-xs mt-1 font-bold">{{ $message }}</span> @enderror
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-red-200 flex items-center justify-end gap-3">
+                <button type="submit" class="px-6 py-2.5 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-trash"></i> Delete Account
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

@@ -148,7 +148,7 @@
                                 <div class="text-xs text-gray-400">{{ $app->phone ?? 'N/A' }}</div>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                @if ($app->status == 'confirmed')
+                                @if ($app->status == 'approved' || $app->status == 'confirmed')
                                     <span
                                         class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Confirmed</span>
                                 @elseif($app->status == 'rejected')

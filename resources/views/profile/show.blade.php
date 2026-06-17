@@ -24,13 +24,10 @@
                     <div class="w-24 h-24 bg-emerald-500 text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto">
                         {{ substr(Auth::user()->name, 0, 2) }}
                     </div>
-                    <div class="absolute bottom-0 right-0 bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white cursor-pointer shadow-sm">
-                        <i class="fa-solid fa-camera text-xs"></i>
-                    </div>
                 </div>
 
                 <h2 class="text-xl font-bold text-gray-900">{{ Auth::user()->name }}</h2>
-                <p class="text-sm text-gray-500 font-medium mb-6">User</p>
+                <p class="text-sm text-gray-500 font-medium mb-6 uppercase">{{ Auth::user()->role }}</p>
 
                 <a href="{{ route('profile.edit') }}" 
                    class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-md shadow-blue-200">
@@ -47,9 +44,6 @@
                         <h3 class="font-bold text-gray-900 text-lg">Personal Information</h3>
                         <p class="text-gray-500 text-sm">Update your personal details and contact information</p>
                     </div>
-                    <a href="{{ route('profile.edit') }}" class="text-gray-400 hover:text-blue-600 text-sm font-semibold transition flex items-center gap-1">
-                        <i class="fa-solid fa-pen"></i> Edit
-                    </a>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -111,21 +105,7 @@
                 </div>
             </div>
 
-            <div class="bg-red-50 rounded-xl border border-red-100 p-6">
-                <h3 class="font-bold text-red-800 text-lg">Danger Zone</h3>
-                <p class="text-red-600 text-xs mb-6">Irreversible actions that affect your account</p>
 
-                <div class="bg-white p-4 rounded-lg border border-red-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div>
-                        <h4 class="font-bold text-gray-900 text-sm">Delete Account</h4>
-                        <p class="text-xs text-gray-500 mt-1">Permanently delete your account and all data</p>
-                    </div>
-                    <button type="button" onclick="confirm('Are you surely you want to delete your account? This cannot be undone.')" 
-                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition">
-                        Delete Account
-                    </button>
-                </div>
-            </div>
 
         </div>
     </div>

@@ -83,7 +83,7 @@
                                     class="fas fa-calendar-times"></i> Availability</a>
                             <a href="{{ route('admin.appointments.active') }}"
                                 class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition whitespace-nowrap {{ request()->routeIs('admin.appointments.active') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-50' }}"><i
-                                    class="fa-solid fa-calendar-check"></i> Active Workspace</a>
+                                    class="fa-solid fa-calendar-check"></i> Active Booking</a>
                             <a href="{{ route('admin.reports') }}"
                                 class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition whitespace-nowrap {{ request()->routeIs('admin.reports') ? 'text-blue-600 font-bold bg-blue-50' : 'text-gray-500 hover:text-blue-600 hover:bg-gray-50' }}"><i
                                     class="fa-solid fa-file"></i> Report</a>
@@ -199,7 +199,7 @@
                                 class="fas fa-calendar-times w-5 text-center"></i> Set Availability</a>
                         <a href="{{ route('admin.appointments.active') }}"
                             class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('admin.appointments.active') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50' }}"><i
-                                class="fa-solid fa-calendar-check w-5 text-center"></i> Active Workspace</a>
+                                class="fa-solid fa-calendar-check w-5 text-center"></i> Active Booking</a>
                         <a href="{{ route('admin.reports') }}"
                             class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('admin.reports') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50' }}"><i
                                 class="fa-solid fa-file w-5 text-center"></i> View Reports</a>

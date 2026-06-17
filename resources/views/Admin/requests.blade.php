@@ -236,9 +236,7 @@
                                         <td class="px-6 py-4 text-gray-600">{{ $apt->user->email }}</td>
                                         <td class="px-6 py-4">
                                             <div class="flex items-center justify-center gap-2">
-                                                <span
-                                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-green-100 text-green-800 border border-green-200">Active
-                                                    Approved</span>
+                                                <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-green-100 text-green-800 border border-green-200">Approved</span>
                                                 <button type="button"
                                                     onclick="openRescheduleModal('{{ $apt->id }}', '{{ $apt->user->name ?? 'Unknown' }}')"
                                                     class="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-bold uppercase hover:bg-yellow-100 transition border border-yellow-200">Reschedule</button>
